@@ -12,7 +12,7 @@ def initialize_window():
 
 # Set up the main colors and fonts
 top_bg_color = "#f3d8d2"  # Pink background color
-header_color = "#c63232"  # Header color
+header_color = "#97d4ff"  # Header color
 text_color = "#4a4a4a"  # General text color
 header_font = ("Helvetica", 18, "bold")
 subheader_font = ("Helvetica", 14)
@@ -82,17 +82,6 @@ def create_header(root):
     login_label = tk.Label(header_frame, text="Hello Guest! Login/Signup", font=subheader_font, bg=header_color, fg="white")
     login_label.pack(side="right", padx=20)
     
-    # Second part of the header (Special Offers, Contact Us)
-    secondary_header_frame = tk.Frame(root, bg="#ff4d4d", height=60)
-    secondary_header_frame.pack(fill="x", side="top", )  # Reduced pady to eliminate space between sections
-    secondary_header_frame.pack_propagate(False)  # Prevent shrinking of the second part
-
-    # Special Offers and Contact Us in this secondary header
-    offers_label = tk.Label(secondary_header_frame, text="Special Offers", font=subheader_font, bg="#ff4d4d", fg="white")
-    offers_label.pack(side="left", padx=20, pady=5)
-
-    contact_label = tk.Label(secondary_header_frame, text="Contact Us", font=subheader_font, bg="#ff4d4d", fg="white")
-    contact_label.pack(side="left", padx=20, pady=5)
 
     # Select Cinema button
     select_city_button = tk.Button(header_frame, text="Select Cinema", font=subheader_font, bg="#ff4d4d", fg="white", command=open_selection_frame)
@@ -123,8 +112,6 @@ def open_selection_frame():
 
     close_button = tk.Button(selection_frame, text="Close", command=close_selection_frame, font=("Helvetica", 12, "bold"), bg="#ff4d4d", fg="white", relief="solid")
     close_button.pack(pady=20)
-
-
 
 def close_selection_frame(event=None):
     global selection_frame, overlay_frame
