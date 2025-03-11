@@ -10,6 +10,7 @@ conn = mysql.connector.connect(
     database="Cinema"
 )
 
+
 # Defining Cinema Class:
 
 #class Cinema:
