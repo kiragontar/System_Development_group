@@ -1,3 +1,4 @@
+import mysql.connector # To connect with the MYsql table created in MYSQL workbench.
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models.booking import Booking
@@ -15,6 +16,14 @@ from models.screening import Screening
 from models.seat import Seat
 from models.ticket import Ticket
 from models.user import User
+
+conn = mysql.connector.connect(
+    host="localhost",
+    user="MickelUWE",
+    password="g<bI1Z11iC]c", 
+    database="Cinema"
+)
+
 
 DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
 engine = create_engine(DATABASE_URL, echo = True) # Initialises connection to the existing database, echo=True enables debugging (Printing out all queries it executes).
