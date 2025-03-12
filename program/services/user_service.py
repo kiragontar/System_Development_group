@@ -30,9 +30,11 @@ class UserService:
             Deletes a user from the system by their unique user ID
     """
 
-    def __init__(self, session: Session):
-        """Initializes the UserService with a session."""
+    def __init__(self, session: Session, role_service, cinema_service): 
+        """Initializes the UserService with a session and other services."""
         self.session = session
+        self.role_service = role_service
+        self.cinema_service = cinema_service 
 
     def login(self, username: str, password: str) -> bool:
         """

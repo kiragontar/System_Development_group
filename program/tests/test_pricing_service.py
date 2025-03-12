@@ -5,7 +5,7 @@ from models import Base, CityPricing
 from services.pricing_service import PricingService
 
 # Setup a test database
-DATABASE_URL = "sqlite:///:memory:"
+DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost/testdb"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 

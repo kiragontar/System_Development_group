@@ -26,12 +26,12 @@ class User(Base):
     """
     __tablename__ = 'users'
 
-    user_id = Column(Integer, primary_key = True) # Unique identifier for the user.
-    username = Column(String, unique = True, nullable = False) # Username must be unique, and must not be null.
-    password_hash = Column(String, nullable=False)
-    salt = Column(String, nullable=False)
-    firstname = Column(String, nullable = False) # First name of the user.
-    lastname = Column(String, nullable = False) # Last name of the user.
+    user_id = Column(Integer, primary_key = True, autoincrement=True) # Unique identifier for the user.
+    username = Column(String(255), unique = True, nullable = False) # Username must be unique, and must not be null.
+    password_hash = Column(String(255), nullable=False)
+    salt = Column(String(255), nullable=False)
+    firstname = Column(String(255), nullable = False) # First name of the user.
+    lastname = Column(String(255), nullable = False) # Last name of the user.
     role_id = Column(Integer, ForeignKey('roles.role_id'), nullable = False) # Foreign key linking to the Role table.
     cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id')) #link to a cinema, if the user works at one.
     is_password_expired = Column(Boolean, default=False)  # Indicates whether the password has expired.

@@ -13,11 +13,11 @@ class Screening(Base):
     __tablename__ = 'screenings'
 
     screening_id = Column(Integer, primary_key=True, autoincrement=True)
-    screen_id = Column(String, ForeignKey('screens.screen_id'))
+    screen_id = Column(String(255), ForeignKey('screens.screen_id'))
     film_id = Column(Integer, ForeignKey('films.film_id'))
     date = Column(Date) # Change back to DateTime for no testing.
-    start_time = Column(String)
-    end_time = Column(String)
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
     lower_hall_sold = Column(Integer)
     upper_hall_sold = Column(Integer)
     vip_sold = Column(Integer)

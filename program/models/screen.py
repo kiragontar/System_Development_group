@@ -14,7 +14,7 @@ class Screen(Base):
     """
     __tablename__ = 'screens'
 
-    screen_id = Column(String, primary_key=True)  # Unique identifier for the screen
+    screen_id = Column(String(255), primary_key=True)  # Unique identifier for the screen
     capacity_upper = Column(Integer, nullable=False)  # Upper section seating capacity
     capacity_lower = Column(Integer, nullable=False)  # Lower section seating capacity
     capacity_vip = Column(Integer, nullable=False)  # VIP seating capacity

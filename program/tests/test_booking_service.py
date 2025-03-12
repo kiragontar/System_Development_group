@@ -11,12 +11,14 @@ from models.screen import Screen
 from models.film import Film
 from models.seat import Seat
 from models.screening import Screening
+from models.city import City
+from models.cinema import Cinema
 from enums import PaymentStatus 
 from services.booking_service import BookingService, InvalidScreeningError, NoSeatsSelectedError  # Import custom exceptions
 import uuid
 
 # Setup a test database
-DATABASE_URL = "sqlite:///:memory:"  # Use in-memory SQLite for testing, database exists only in RAM and is destroyed after testing.
+DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost/testdb"  
 engine = create_engine(DATABASE_URL) # Creates interface to database.
 SessionLocal = sessionmaker(bind=engine) # Sessions are used to interact with database.
 
@@ -31,13 +33,27 @@ def session():
     Base.metadata.drop_all(bind=engine) # Drops all tables cleaning database.
 
 @pytest.fixture
+def city(session):
+    city = City(name="Test City", country="Test Country")
+    session.add(city)
+    session.commit()
+    return city
+
+@pytest.fixture
+def cinema(session, city):
+    cinema = Cinema(name="Test Cinema", address="123 Test St", city_id=city.city_id)
+    session.add(cinema)
+    session.commit()
+    return cinema
+
+@pytest.fixture
 def booking_service(session): # Creates an instance of the BookingService.
     return BookingService(session) # Passes in the session to the service. Makes service available to test functions.
 
 @pytest.fixture
-def create_test_data(session):
+def create_test_data(session, cinema):
     # Create test Screen
-    screen = Screen(screen_id="S1", cinema_id=1, capacity_upper=80, capacity_lower=30, capacity_vip=10)
+    screen = Screen(screen_id="S1", cinema_id=cinema.cinema_id, capacity_upper=80, capacity_lower=30, capacity_vip=10)
     session.add(screen)
     session.commit()
 
@@ -48,15 +64,15 @@ def create_test_data(session):
 
     # Create test screening
     now = datetime.now()
-    start_time_str = now.time().strftime("%H:%M:%S")  # Convert to string for SQLite
-    end_time_str = (now + timedelta(hours=2)).time().strftime("%H:%M:%S")  # Convert to string
+    start_time = now
+    end_time = now + timedelta(hours=2)
 
     screening = Screening(
         screen_id="S1",
         film_id=film.film_id,
         date=now.date(),
-        start_time=start_time_str,  # Use the string
-        end_time=end_time_str,  # Use the string
+        start_time=start_time,
+        end_time=end_time,
         lower_hall_sold=0,
         upper_hall_sold=0,
         vip_sold=0

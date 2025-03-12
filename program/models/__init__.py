@@ -15,7 +15,7 @@ role_permission_association = Table(
 booking_seat_association = Table(
     'booking_seat', # Name
     Base.metadata,
-    Column('booking_id', String, ForeignKey('bookings.booking_id'), primary_key=True),
+    Column('booking_id', String(255), ForeignKey('bookings.booking_id'), primary_key=True),
     Column('seat_id', Integer, ForeignKey('seats.seat_id'), primary_key=True) # Composite primary keys.
 )
 

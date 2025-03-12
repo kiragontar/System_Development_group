@@ -14,14 +14,14 @@ class Booking(Base):
 
     __tablename__ = 'bookings'
 
-    booking_id = Column(String, unique=True, primary_key=True)
+    booking_id = Column(String(225), unique=True, primary_key=True)
     screening_id = Column(Integer, ForeignKey('screenings.screening_id'), nullable=False)
     booking_time = Column(DateTime, nullable=False)
     price = Column(Float, nullable=False)
     payment_status = Column(Enum(PaymentStatus), nullable=False)
-    customer_name = Column(String, nullable=False)
-    customer_email = Column(String, nullable=True)
-    customer_phone = Column(String, nullable=True)
+    customer_name = Column(String(255), nullable=False)
+    customer_email = Column(String(255), nullable=True)
+    customer_phone = Column(String(255), nullable=True)
 
     # Relationship to Screening
     screening = relationship('Screening', back_populates='bookings')

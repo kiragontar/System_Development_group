@@ -10,9 +10,9 @@ class City(Base):
     """
     __tablename__ = 'cities'
 
-    city_id = Column(Integer, primary_key=True)  # Unique identifier for the city.
-    name = Column(String, nullable=False)  # The name of the city.
-    country = Column(String, nullable=False)  # The country where the city is located.
+    city_id = Column(Integer, primary_key=True, autoincrement=True)  # Unique identifier for the city.
+    name = Column(String(255), nullable=False)  # The name of the city.
+    country = Column(String(255), nullable=False)  # The country where the city is located.
 
     # Relationship to cinemas in the city
     cinemas = relationship('Cinema', back_populates='city')  # List of cinemas in the city.

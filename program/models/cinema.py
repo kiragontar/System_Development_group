@@ -21,8 +21,8 @@ class Cinema(Base):
 
     cinema_id = Column(Integer, primary_key = True, autoincrement=True) # Makes a column of id, making it a primary key and type integer.
     city_id = Column(Integer, ForeignKey('cities.city_id'), nullable = False) # City ID references the City table.
-    name = Column(String, nullable = False) # name shouldnt be nullable, so its mandatory.
-    address = Column(String, nullable = False)
+    name = Column(String(255), nullable = False) # name shouldnt be nullable, so its mandatory.
+    address = Column(String(255), nullable = False)
 
     city = relationship('City', back_populates='cinemas')  # One cinema belongs to one city
     cinema_films = relationship('CinemaFilm', back_populates='cinema')  # Films related to this cinema

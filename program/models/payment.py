@@ -10,12 +10,12 @@ class Payment(Base):
     """Represents a payment transaction."""
     __tablename__ = 'payments'
 
-    payment_id = Column(Integer, primary_key=True)
-    booking_id = Column(String, ForeignKey('bookings.booking_id'), nullable=False)
-    payment_method = Column(String, nullable=False)
+    payment_id = Column(Integer, primary_key=True, autoincrement=True)
+    booking_id = Column(String(255), ForeignKey('bookings.booking_id'), nullable=False)
+    payment_method = Column(String(255), nullable=False)
     amount = Column(Float, nullable=False)
     payment_date = Column(DateTime, nullable=False)
-    transaction_id = Column(String, nullable=True)
+    transaction_id = Column(String(255), nullable=True)
     payment_status = Column(Enum(PaymentStatus), nullable=False)
 
     booking = relationship('Booking', back_populates='payments')

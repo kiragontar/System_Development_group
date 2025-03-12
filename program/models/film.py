@@ -12,15 +12,15 @@ class Film(Base):
     __tablename__ = 'films'
 
     film_id = Column(Integer, primary_key=True, autoincrement=True)  # Unique identifier for the film
-    name = Column(String, nullable=False)  # Name of the film
-    genre = Column(String, nullable=False)  # Genres of the film stored as a single string.
-    cast = Column(String, nullable=False)  # List of cast members stored as a single string
-    description = Column(String, nullable=False)  # Brief description of the film
-    age_rating = Column(String, nullable=False)  # Age restriction (e.g., PG-13, R)
+    name = Column(String(255), nullable=False)  # Name of the film
+    genre = Column(String(255), nullable=False)  # Genres of the film stored as a single string.
+    cast = Column(String(255), nullable=False)  # List of cast members stored as a single string
+    description = Column(String(255), nullable=False)  # Brief description of the film
+    age_rating = Column(String(255), nullable=False)  # Age restriction (e.g., PG-13, R)
     critic_rating = Column(Float, nullable=False)  # Critic rating (e.g., IMDb or Rotten Tomatoes score)
     runtime = Column(Integer, nullable=False)  # Runtime in minutes
     release_date = Column(DateTime, nullable=False)  # Date when the film was released
-    movie_poster = Column(String, nullable=True)  # file path for the movie poster
+    movie_poster = Column(String(255), nullable=True)  # file path for the movie poster
 
     # Relationship with screenings (one film can have multiple screenings)
     screenings = relationship('Screening', back_populates='film')

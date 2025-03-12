@@ -1,12 +1,12 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Seat, Screen
+from models import Base, Seat, Screen, City, Cinema
 from services.seat_service import SeatService
 
 
 # Setup a test database
-DATABASE_URL = "sqlite:///:memory:"
+DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost/testdb"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 
@@ -24,11 +24,26 @@ def seat_service(session):
     return SeatService(session)
 
 @pytest.fixture
-def screen(session):
-    screen = Screen(screen_id="S1", cinema_id=1, capacity_upper=100, capacity_lower=50, capacity_vip=20)
+def city(session):
+    city = City(name="Test City", country="Test Country")
+    session.add(city)
+    session.commit()
+    return city
+
+@pytest.fixture
+def cinema(session, city):
+    cinema = Cinema(name="Test Cinema", address='123 avenue', city_id=city.city_id)
+    session.add(cinema)
+    session.commit()
+    return cinema
+
+@pytest.fixture
+def screen(session, cinema): 
+    screen = Screen(screen_id="S1", cinema_id=cinema.cinema_id, capacity_upper=100, capacity_lower=50, capacity_vip=20)
     session.add(screen)
     session.commit()
     return screen
+
 
 def test_create_seat(seat_service, session, screen):
     seat = seat_service.create_seat(screen.screen_id, 1, 1, "Upper Class")

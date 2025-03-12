@@ -9,10 +9,10 @@ class Seat(Base):
     __tablename__ = 'seats'
 
     seat_id = Column(Integer, primary_key=True, autoincrement=True)
-    screen_id = Column(String, ForeignKey('screens.screen_id'), nullable=False)
+    screen_id = Column(String(255), ForeignKey('screens.screen_id'), nullable=False)
     row_number = Column(Integer, nullable=False)
     seat_number = Column(Integer, nullable=False)
-    seat_class = Column(String, nullable=False)
+    seat_class = Column(String(255), nullable=False)
     is_available = Column(Boolean, nullable=False, default=True)
 
     screen = relationship('Screen', back_populates='seats')

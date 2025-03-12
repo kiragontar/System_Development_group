@@ -5,7 +5,7 @@ from models import Base, City, Cinema
 from services.city_service import CityService
 
 # Setup a test database
-DATABASE_URL = "sqlite:///:memory:"
+DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost/testdb"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 

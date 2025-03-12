@@ -11,13 +11,13 @@ class Ticket(Base):
     """Represents a ticket for a screening."""
     __tablename__ = 'tickets'
 
-    ticket_id = Column(Integer, primary_key=True)
-    booking_id = Column(String, ForeignKey('bookings.booking_id'), nullable=False)
+    ticket_id = Column(Integer, primary_key=True, autoincrement=True)
+    booking_id = Column(String(255), ForeignKey('bookings.booking_id'), nullable=False)
     seat_id = Column(Integer, ForeignKey('seats.seat_id'), nullable=False)
     screening_id = Column(Integer, ForeignKey('screenings.screening_id'), nullable=False)
     ticket_price = Column(Float, nullable=False)
     issue_date = Column(DateTime, nullable=False)
-    qr_code = Column(String, nullable=True)
+    qr_code = Column(String(255), nullable=True)
 
     booking = relationship('Booking', back_populates='tickets')
     seat = relationship('Seat', back_populates='tickets')

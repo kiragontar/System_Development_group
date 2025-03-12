@@ -21,8 +21,8 @@ class Role(Base):
     """
     __tablename__ = 'roles'
 
-    role_id = Column(Integer, primary_key = True) # Unique identifier for the role.
-    name = Column(String, unique = True, nullable = False) # The name of the role (e.g., Admin, Staff).
+    role_id = Column(Integer, primary_key = True, autoincrement=True) # Unique identifier for the role.
+    name = Column(String(255), unique = True, nullable = False) # The name of the role (e.g., Admin, Staff).
 
     # Relationship to the User table (a role can have many users)
     users = relationship('User', back_populates='role') # Basically creates a users attribute 

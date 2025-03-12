@@ -7,8 +7,8 @@ class Permission(Base):
     """Represents a permission."""
     __tablename__ = 'permissions'
 
-    permission_id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True, nullable=False)
+    permission_id = Column(Integer, primary_key=True,autoincrement=True)
+    name = Column(String(255), unique=True, nullable=False)
 
     # Relationships
     roles = relationship('Role', secondary=role_permission_association, back_populates='permissions')

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from models import Seat, Ticket
-from pricing_service import PricingService
+from services.pricing_service import PricingService
 
 class TicketService:
     def __init__(self, session: Session, pricing_service: PricingService):

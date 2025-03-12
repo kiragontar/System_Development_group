@@ -1,11 +1,11 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Film, Cinema, CinemaFilm
+from models import Base, Film, Cinema, CinemaFilm, City
 from services.film_service import CinemaFilmService
 from datetime import datetime
 
-DATABASE_URL = "sqlite:///:memory:"
+DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost/testdb"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 
@@ -19,8 +19,15 @@ def session():
     Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture
-def cinema(session):
-    cinema = Cinema(name="Test Cinema", address="123 Test St", city_id=1)
+def city(session): 
+    city = City(name="Test City", country="Test Country")
+    session.add(city)
+    session.commit()
+    return city
+
+@pytest.fixture
+def cinema(session, city):
+    cinema = Cinema(name="Test Cinema", address="123 Test St", city_id=city.city_id)
     session.add(cinema)
     session.commit()
     return cinema
