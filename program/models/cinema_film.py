@@ -8,7 +8,7 @@ class CinemaFilm(Base):
     __tablename__ = 'cinema_film'
 
     cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'), primary_key=True)
-    film_id = Column(String, ForeignKey('films.film_id'), primary_key=True)
+    film_id = Column(Integer, ForeignKey('films.film_id'), primary_key=True)
 
     cinema = relationship('Cinema', back_populates='cinema_films')
     film = relationship('Film', back_populates='cinema_films')

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, String, Float, ForeignKey, DateTime, Integer
 from sqlalchemy.orm import relationship
 from .import Base, booking_seat_association
 from .screening import Screening
@@ -15,7 +15,7 @@ class Booking(Base):
     __tablename__ = 'bookings'
 
     booking_id = Column(String, unique=True, primary_key=True)
-    screening_id = Column(String, ForeignKey('screenings.screening_id'), nullable=False)
+    screening_id = Column(Integer, ForeignKey('screenings.screening_id'), nullable=False)
     booking_time = Column(DateTime, nullable=False)
     price = Column(Float, nullable=False)
     payment_status = Column(Enum(PaymentStatus), nullable=False)
@@ -26,8 +26,10 @@ class Booking(Base):
     # Relationship to Screening
     screening = relationship('Screening', back_populates='bookings')
     seats = relationship('Seat', secondary=booking_seat_association, back_populates='bookings') 
+    payments = relationship('Payment', back_populates='booking')
+    tickets = relationship('Ticket', back_populates='booking')
 
-    def __init__(self, screening_id: str, price: float, seats: list, customer_name:str, customer_email:str = None, customer_phone:str = None):
+    def __init__(self, screening_id: int, price: float, seats: list, customer_name:str, customer_email:str = None, customer_phone:str = None):
         self.booking_id = str(uuid.uuid4()) # Generate UUID here
         self.screening_id = screening_id
         self.booking_time = datetime.now()

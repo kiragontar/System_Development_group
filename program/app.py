@@ -48,3 +48,4 @@ def test_db_connection():
             print("❌ Error:", e)
 
 test_db_connection()
+

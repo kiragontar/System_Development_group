@@ -12,9 +12,9 @@ class ScreeningService:
         """Initializes the ScreeningService with a session."""
         self.session = session
 
-    def create_screening(self, screening_id: str, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> Screening:
+    def create_screening(self, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> Screening:
         """Creates a new screening."""
-        screening = Screening.create_screening(screening_id, screen_id, film_id, date, start_time, end_time, lower_hall_sold, upper_hall_sold, vip_sold)
+        screening = Screening.create_screening(screen_id, film_id, date, start_time, end_time, lower_hall_sold, upper_hall_sold, vip_sold)
         self.session.add(screening)
         self.session.commit()
         return screening

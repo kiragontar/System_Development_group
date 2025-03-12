@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, String, DateTime
+from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Date
 from sqlalchemy.orm import relationship
 from . import Base
 from .screen import Screen
@@ -12,12 +12,12 @@ class Screening(Base):
     """
     __tablename__ = 'screenings'
 
-    screening_id = Column(String, primary_key=True)
+    screening_id = Column(Integer, primary_key=True, autoincrement=True)
     screen_id = Column(String, ForeignKey('screens.screen_id'))
-    film_id = Column(String, ForeignKey('films.film_id'))
-    date = Column(DateTime)
-    start_time = Column(DateTime)
-    end_time = Column(DateTime)
+    film_id = Column(Integer, ForeignKey('films.film_id'))
+    date = Column(Date) # Change back to DateTime for no testing.
+    start_time = Column(String)
+    end_time = Column(String)
     lower_hall_sold = Column(Integer)
     upper_hall_sold = Column(Integer)
     vip_sold = Column(Integer)
@@ -25,13 +25,13 @@ class Screening(Base):
     # Relationships
     screen = relationship('Screen', back_populates='screenings')
     film = relationship('Film', back_populates='screenings')
-    
+    bookings = relationship('Booking', back_populates='screening')
+    tickets = relationship('Ticket', back_populates='screening')
 
-    def __init__(self, screening_id: str, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int, upper_hall_sold: int, vip_sold: int):
+    def __init__(self, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int, upper_hall_sold: int, vip_sold: int):
         """
         Initializes a new Screening object with the provided attributes.
         """
-        self.screening_id = screening_id
         self.screen_id = screen_id
         self.film_id = film_id
         self.date = date
@@ -42,12 +42,11 @@ class Screening(Base):
         self.vip_sold = vip_sold
 
     @classmethod
-    def create_screening(cls, screening_id: str, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> 'Screening':
+    def create_screening(cls, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> 'Screening':
         """
         Creates a new Screening object and sets its attributes.
         """
         screening = cls(
-            screening_id=screening_id,
             screen_id=screen_id,
             film_id=film_id,
             date=date,

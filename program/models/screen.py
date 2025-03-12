@@ -24,19 +24,18 @@ class Screen(Base):
     cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'))
     cinema = relationship('Cinema', back_populates='screens')
     screenings = relationship('Screening', back_populates='screen')  # Screenings on this screen
+    seats = relationship('Seat', back_populates='screen')
 
-    def __init__(self, screen_id: str):
+    def __init__(self, screen_id: str, cinema_id: int, capacity_upper: int, capacity_lower: int, capacity_vip: int):
         """
-        Initializes a new screen with the provided screen_id.
-        
-        Args:
-        - screen_id (str): The unique identifier for the screen.
+        Initializes a new screen with the provided details.
         """
         self.screen_id = screen_id
-        self.capacity_upper = 0
-        self.capacity_lower = 0
-        self.capacity_vip = 0
-        self.total_capacity = 0
+        self.cinema_id = cinema_id
+        self.capacity_upper = capacity_upper
+        self.capacity_lower = capacity_lower
+        self.capacity_vip = capacity_vip
+        self.total_capacity = capacity_upper + capacity_lower + capacity_vip
 
     def get_id(self) -> str:
         """
@@ -73,6 +72,12 @@ class Screen(Base):
         - int: The number of VIP seats in the screen.
         """
         return self.capacity_vip
+    
+    def get_total_capacity(self) -> int:
+        """
+        Returns the total seating capacity of the screen.
+        """
+        return self.total_capacity
 
     def set_capacity_upper(self, capacity_upper: int) -> None:
         """
@@ -127,23 +132,8 @@ class Screen(Base):
     def create_screen(cls, screen_id: str, cinema_id: int, capacity_upper: int = 0, capacity_lower: int = 0, capacity_vip: int = 0) -> 'Screen':
         """
         Creates a new Screen object and sets its attributes.
-
-        Args:
-            screen_id (str): The unique identifier for the screen.
-            cinema_id (int): The ID of the cinema to which the screen belongs.
-            capacity_upper (int): The upper section seating capacity.
-            capacity_lower (int): The lower section seating capacity.
-            capacity_vip (int): The VIP seating capacity.
-
-        Returns:
-            Screen: The newly created Screen object.
         """
-        screen = cls(screen_id)  # Create an instance
-        screen.cinema_id = cinema_id
-        screen.capacity_upper = capacity_upper
-        screen.capacity_lower = capacity_lower
-        screen.capacity_vip = capacity_vip
-        screen.update_total_capacity()
+        screen = cls(screen_id, cinema_id, capacity_upper, capacity_lower, capacity_vip)
         return screen
     
     def __repr__(self) -> str:

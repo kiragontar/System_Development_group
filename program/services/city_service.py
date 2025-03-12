@@ -47,6 +47,11 @@ class CityService:
         """Deletes a city."""
         city = self.get_city_by_id(city_id)
         if city:
+            # Delete associated cinemas first
+            cinemas = self.session.query(Cinema).filter_by(city_id=city_id).all()
+            for cinema in cinemas:
+                self.session.delete(cinema)
+
             self.session.delete(city)
             self.session.commit()
             return True

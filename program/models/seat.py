@@ -8,8 +8,8 @@ class Seat(Base):
     """Represents a seat in a screen."""
     __tablename__ = 'seats'
 
-    seat_id = Column(Integer, primary_key=True)
-    screen_id = Column(Integer, ForeignKey('screens.screen_id'), nullable=False)
+    seat_id = Column(Integer, primary_key=True, autoincrement=True)
+    screen_id = Column(String, ForeignKey('screens.screen_id'), nullable=False)
     row_number = Column(Integer, nullable=False)
     seat_number = Column(Integer, nullable=False)
     seat_class = Column(String, nullable=False)
@@ -17,6 +17,7 @@ class Seat(Base):
 
     screen = relationship('Screen', back_populates='seats')
     bookings = relationship('Booking', secondary=booking_seat_association, back_populates='seats')
+    tickets = relationship('Ticket', back_populates='seat')
 
     def __init__(self, screen_id: int, row_number: int, seat_number: int, seat_class: str):
         self.screen_id = screen_id

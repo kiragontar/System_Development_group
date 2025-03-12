@@ -14,7 +14,7 @@ class Ticket(Base):
     ticket_id = Column(Integer, primary_key=True)
     booking_id = Column(String, ForeignKey('bookings.booking_id'), nullable=False)
     seat_id = Column(Integer, ForeignKey('seats.seat_id'), nullable=False)
-    screening_id = Column(String, ForeignKey('screenings.screening_id'), nullable=False)
+    screening_id = Column(Integer, ForeignKey('screenings.screening_id'), nullable=False)
     ticket_price = Column(Float, nullable=False)
     issue_date = Column(DateTime, nullable=False)
     qr_code = Column(String, nullable=True)
@@ -23,7 +23,7 @@ class Ticket(Base):
     seat = relationship('Seat', back_populates='tickets')
     screening = relationship('Screening', back_populates='tickets')
 
-    def __init__(self, booking_id: str, seat_id: int, screening_id: str, ticket_price: float, qr_code: str = None):
+    def __init__(self, booking_id: str, seat_id: int, screening_id: int, ticket_price: float, qr_code: str = None):
         self.booking_id = booking_id
         self.seat_id = seat_id
         self.screening_id = screening_id

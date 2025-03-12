@@ -11,7 +11,7 @@ class Film(Base):
     """
     __tablename__ = 'films'
 
-    film_id = Column(String, primary_key=True)  # Unique identifier for the film
+    film_id = Column(Integer, primary_key=True, autoincrement=True)  # Unique identifier for the film
     name = Column(String, nullable=False)  # Name of the film
     genre = Column(String, nullable=False)  # Genres of the film stored as a single string.
     cast = Column(String, nullable=False)  # List of cast members stored as a single string

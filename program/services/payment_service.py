@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-from models import PaymentStatus, Payment
+from models import Payment
+from enums import PaymentStatus
 
 
 
@@ -15,7 +16,7 @@ class PaymentService:
         return payment
     
     def update_payment_status(self, payment_id: int, payment_status: PaymentStatus, transaction_id: str = None) -> Payment:
-        payment = PaymentService.get_payment_by_id(payment_id)
+        payment = self.get_payment_by_id(payment_id)
         if payment:
             payment.set_payment_status(payment_status)
             if transaction_id:

@@ -19,15 +19,14 @@ class Cinema(Base):
     """
     __tablename__ = "cinemas" # This matches the table name.
 
-    cinema_id = Column(Integer, primary_key = True) # Makes a column of id, making it a primary key and type integer.
-    city_id = Column(Integer, ForeignKey('city.city_id'), nullable = False) # City ID references the City table.
+    cinema_id = Column(Integer, primary_key = True, autoincrement=True) # Makes a column of id, making it a primary key and type integer.
+    city_id = Column(Integer, ForeignKey('cities.city_id'), nullable = False) # City ID references the City table.
     name = Column(String, nullable = False) # name shouldnt be nullable, so its mandatory.
     address = Column(String, nullable = False)
 
     city = relationship('City', back_populates='cinemas')  # One cinema belongs to one city
     cinema_films = relationship('CinemaFilm', back_populates='cinema')  # Films related to this cinema
     screens = relationship('Screen', back_populates='cinema')  # Screens in this cinema
-    screenings = relationship('Screening', back_populates='cinema')  # Screenings in this cinema
     users = relationship('User', back_populates='cinema')
 
     def __init__(self, name: str, address: str, city_id: int):

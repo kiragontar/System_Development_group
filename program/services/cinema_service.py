@@ -55,7 +55,7 @@ class CinemaService:
     def get_staff(self, cinema_id: int) -> list[User]:
         cinema = self.get_cinema_by_id(cinema_id)
         if cinema:
-            return self.session.query(User).join(Role).filter(User.cinema_id == cinema_id, Role.name != 'Admin' and Role.name != 'Manager').all()
+            return self.session.query(User).join(Role).filter(User.cinema_id == cinema_id, Role.name == 'Staff').all()
         return []
 
     def get_screens(self, cinema_id: int) -> list['Screen']:
