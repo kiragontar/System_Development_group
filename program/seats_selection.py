@@ -1,94 +1,88 @@
-
 import tkinter as tk
+from tkinter import simpledialog
 
-def on_click(event):
-    """Handle shape click and toggle its color between green and red."""
-    clicked_shape = canvas.find_closest(event.x, event.y)  # Get the closest shape
-    tags = canvas.gettags(clicked_shape)  # Retrieve tags associated with the shape
-    if "shape" in tags:  # Ensure the clicked item is a shape
-        current_color = canvas.itemcget(clicked_shape, "fill")  # Get current fill color
-        new_color = "red" if current_color == "green" else "green"  # Toggle color
-        canvas.itemconfig(clicked_shape, fill=new_color)
-
-# Input: Number list (first digit = shape, second digit = color)
+# Initial screen seat plan
 screen_seat_plan = [0, 11, 11, 10, 10, 20, 30, 20, 11, 31, 10, 00, 10, 4, 21, 11, 21, 31, 31, 31, 31, 30, 30, 30, 30, 4, 30, 20, 20]
 
 # Create the main window
 root = tk.Tk()
-root.title("Dynamic Shapes with Empty Spaces")
+root.title("Add Seats to Screen Plan")
+root.geometry("800x600")
 
-# Set the window to fullscreen
-root.attributes("-fullscreen", True)
-
-# Add a canvas
-canvas = tk.Canvas(root, bg="grey")
+# Canvas for displaying seats
+canvas = tk.Canvas(root, bg="lightgrey")
 canvas.pack(expand=True, fill="both")
 
 # Variables to control layout
-shape_size = 40  # Size of each shape
-padding = 10  # Space between shapes
+shape_size = 40  # Size of each seat
+padding = 10  # Space between seats
 x_start = 50  # Starting x-coordinate
 y_start = 50  # Starting y-coordinate
-current_x = x_start
-current_y = y_start
 
 # Function to draw a triangle
 def create_triangle(x1, y1, x2, y2, x3, y3, color):
-    return canvas.create_polygon(x1, y1, x2, y2, x3, y3, fill=color, outline="black", tags=("shape",))
+    return canvas.create_polygon(x1, y1, x2, y2, x3, y3, fill=color, outline="black", tags=("seat",))
 
-# Loop through the number list and draw shapes
-for num in screen_seat_plan:
-    if num == 0:
-        # Skip empty spaces
-        current_x += shape_size + padding
-    elif num == 4:
-        # Move to the next line
-        current_x = x_start
-        current_y += shape_size + padding
-    else:
-        first_digit = num // 10  # Determine the shape
-        second_digit = num % 10  # Determine the color
+# Function to render the screen seat plan
+def render_screen_seat_plan():
+    canvas.delete("seat")  # Clear existing seats
+    current_x = x_start
+    current_y = y_start
 
-        # Assign color based on second digit
-        color = "green" if second_digit == 0 else "red"
-
-        if first_digit == 1:
-            # Draw a circle
-            shape = canvas.create_oval(
+    for seat in screen_seat_plan:
+        if seat == 0:
+            # Empty space
+            current_x += shape_size + padding
+        elif seat == 1:
+            # Circle
+            canvas.create_oval(
                 current_x, current_y,
                 current_x + shape_size, current_y + shape_size,
-                fill=color, outline="black", tags=("shape",)
+                fill="green", outline="black", tags=("seat",)
             )
-        elif first_digit == 2:
-            # Draw a square
-            shape = canvas.create_rectangle(
+            current_x += shape_size + padding
+        elif seat == 2:
+            # Square
+            canvas.create_rectangle(
                 current_x, current_y,
                 current_x + shape_size, current_y + shape_size,
-                fill=color, outline="black", tags=("shape",)
+                fill="blue", outline="black", tags=("seat",)
             )
-        elif first_digit == 3:
-            # Draw a triangle
-            shape = create_triangle(
+            current_x += shape_size + padding
+        elif seat == 3:
+            # Triangle
+            create_triangle(
                 current_x, current_y + shape_size,
                 current_x + shape_size / 2, current_y,
                 current_x + shape_size, current_y + shape_size,
-                color
+                "yellow"
             )
-        else:
-            # Unknown digit: Skip this entry
-            continue
+            current_x += shape_size + padding
+        elif seat == 4:
+            # Move to next row
+            current_x = x_start
+            current_y += shape_size + padding
 
-        # Bind click event to change color
-        canvas.tag_bind(shape, "<Button-1>", on_click)
+# Function to add a new seat
+def add_seat():
+    seat_type = simpledialog.askinteger("Input", "Enter seat type (0: Empty, 1: Circle, 2: Square, 3: Triangle, 4: New Row):")
+    if seat_type not in [0, 1, 2, 3, 4]:
+        print("Invalid seat type!")
+        return
 
-        # Update position
-        current_x += shape_size + padding
+    # Append the seat to the screen_seat_plan list
+    screen_seat_plan.append(seat_type)
+    print(f"Added seat type {seat_type}. Current plan: {screen_seat_plan}")
 
-# Quit fullscreen with the "Escape" key
-def exit_fullscreen(event):
-    root.attributes("-fullscreen", False)
+    # Re-render the screen seat plan
+    render_screen_seat_plan()
 
-root.bind("<Escape>", exit_fullscreen)  # Bind "Escape" to exit fullscreen
+# Button to add a new seat
+add_seat_button = tk.Button(root, text="Add New Seat", command=add_seat)
+add_seat_button.pack(side="top", pady=10)
 
-# Start the Tkinter main event loop
+# Render the initial screen seat plan
+render_screen_seat_plan()
+
+# Start the Tkinter main loop
 root.mainloop()

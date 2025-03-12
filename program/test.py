@@ -4,7 +4,7 @@ def on_click(event):
     """Handle square click."""
     print(f"Square at ({event.x}, {event.y}) clicked!")
 
-
+screen_seat_plan = [0,1,1,1,1,2,3,2,1,3,1,0,1,4,2,1,2,3,3,3,3,3,3,3,3,4,3,2,2]
 # Create the main window
 root = tk.Tk()
 root.title("creating layout")
@@ -16,7 +16,7 @@ root.attributes("-fullscreen", True)
 canvas = tk.Canvas(root, bg="grey")
 canvas.pack(expand=True, fill="both")
 # Draw squares
-square1 = canvas.create_rectangle(50, 50, 150, 150, fill="lightblue", outline="")
+square1 = canvas.create_rectangle(50, 50, 150, 150, fill="blue", outline="")
 square2 = canvas.create_rectangle(200, 50, 300, 150, fill="lightgreen", outline="")
 # Draw a circle
 circle = canvas.create_oval(100, 100, 200, 200, fill="yellow", outline="black")
