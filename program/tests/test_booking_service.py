@@ -14,7 +14,7 @@ from models.screening import Screening
 from models.city import City
 from models.cinema import Cinema
 from enums import PaymentStatus 
-from services.booking_service import BookingService, InvalidScreeningError, NoSeatsSelectedError  # Import custom exceptions
+from services.booking_service import BookingService, InvalidScreeningError, NoSeatsSelectedError, BookingNotFoundError # Import custom exceptions
 import uuid
 
 # Setup a test database
@@ -129,3 +129,47 @@ def test_create_booking_no_seats(session, booking_service, create_test_data):
 
     with pytest.raises(NoSeatsSelectedError):
         booking_service.create_booking(screening.screening_id, price, [], customer_name)
+
+def test_get_all_bookings(session, booking_service, create_test_data):
+    screening, seats = create_test_data
+    booking1 = booking_service.create_booking(screening.screening_id, 20.0, seats, "John Doe")
+    booking2 = booking_service.create_booking(screening.screening_id, 25.0, seats, "Jane Doe")
+
+    all_bookings = booking_service.get_all_bookings()
+
+    assert len(all_bookings) == 2
+    assert booking1 in all_bookings
+    assert booking2 in all_bookings
+
+def test_get_booking_by_id(session, booking_service, create_test_data):
+    screening, seats = create_test_data
+    booking = booking_service.create_booking(screening.screening_id, 20.0, seats, "John Doe")
+
+    retrieved_booking = booking_service.get_booking_by_id(booking.booking_id)
+
+    assert retrieved_booking == booking
+
+def test_cancel_booking(session, booking_service, create_test_data):
+    screening, seats = create_test_data
+    booking = booking_service.create_booking(screening.screening_id, 20.0, seats, "John Doe")
+
+    booking_service.cancel_booking(booking.booking_id)
+
+    canceled_booking = session.query(Booking).filter_by(booking_id=booking.booking_id).first()
+    assert canceled_booking.payment_status == PaymentStatus.REFUNDED
+
+def test_cancel_booking_not_found(session, booking_service, create_test_data):
+    with pytest.raises(BookingNotFoundError):
+        booking_service.cancel_booking("nonexistent_booking_id")
+
+def test_place_booking(session, booking_service, create_test_data):
+    screening, seats = create_test_data
+    booking = booking_service.create_booking(screening.screening_id, 20.0, seats, "John Doe")
+    booking.payment_status = PaymentStatus.PAID
+    session.commit()
+
+    assert booking_service.place_booking(booking.booking_id) is True
+
+def test_place_booking_not_found(session, booking_service, create_test_data):
+    with pytest.raises(BookingNotFoundError):
+        booking_service.place_booking("nonexistent_booking_id")

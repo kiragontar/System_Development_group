@@ -19,7 +19,7 @@ class ScreeningService:
         self.session.commit()
         return screening
 
-    def get_screening_by_id(self, screening_id: str) -> Optional[Screening]:
+    def get_screening_by_id(self, screening_id: int) -> Optional[Screening]:
         """Retrieves a screening by ID."""
         return self.session.query(Screening).filter_by(screening_id=screening_id).first()
 

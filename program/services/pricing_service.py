@@ -39,3 +39,11 @@ class PricingService:
             self.session.commit()
             return True
         return False
+    
+    def get_by_id(self, id: int) -> CityPricing:
+        """Retrieves a price entry by its ID."""
+        return self.session.query(CityPricing).filter(CityPricing.id == id).first()
+    
+    def get_all(self) -> list[CityPricing]:
+        """Retrieves all price entries."""
+        return self.session.query(CityPricing).all()

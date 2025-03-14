@@ -30,7 +30,7 @@ class TicketService:
         tickets = self.session.query(Ticket).filter_by(booking_id=booking_id).all()
         return tickets
 
-    def get_tickets_by_screening(self, screening_id: str) -> list[Ticket]:
+    def get_tickets_by_screening(self, screening_id: int) -> list[Ticket]:
         """Retrieves all tickets for a specific screening."""
         tickets = self.session.query(Ticket).filter_by(screening_id=screening_id).all()
         return tickets
