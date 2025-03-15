@@ -18,7 +18,7 @@ session = SessionLocal()
 # session.add(city)
 # session.commit()
 city_service = CityService(session)
-city = city_service.create_city(name="London", country="UK")
+# city = city_service.create_city(name="London", country="UK")
 
 # cinema = Cinema(name="Test Cinema", address="123 Test St", city_id=city.city_id)
 # session.add(cinema)
@@ -30,9 +30,11 @@ city = city_service.create_city(name="London", country="UK")
 
 role_service = RoleService(session)
 cinema_service = CinemaService(session)
-
 user_service = UserService(session, role_service, cinema_service)
-user = user_service.create_user()
+
+# user = user_service.create_user("Konstantinos1", "GetPass123$", "Konstantinos", "Last Name", 1)
+# user = user_service.create_user("Mickel1", "GetPass123$", "Mickel", "Last Name", 1)
+# user = user_service.create_user("Kira1", "GetPass123$", "Kira", "Last Name", 1)
 # city = city_service.create_city(name="London", country="UK")
 # print(f"City created: {city.city_id}")
 
@@ -86,9 +88,7 @@ def hide_all_screens():
 root = tk.Tk()
 root.title("Switch Screens Example")
 
-# ---------------------------
 #  1) MAIN SCREEN (with 5 buttons)
-# ---------------------------
 main_frame = tk.LabelFrame(root, text="Main Screen")
 main_frame.pack(padx=10, pady=10)
 
@@ -112,9 +112,9 @@ button = tk.Button(
 button.pack(side="left", padx=5, pady=5)
 
 
-# ---------------------------
+
 #  2) EMPLOYEES SCREEN (mock data)
-# ---------------------------
+
 employees_frame = tk.Frame(root)
 
 # A label at the top
@@ -122,27 +122,28 @@ employees_label = tk.Label(employees_frame, text="Employee List", font=("Arial",
 employees_label.pack(pady=5)
 
 # Mock data for employees (firstname, lastname, id)
-employees = [
-    ("John", "Doe", "ID001"),
-    ("Jane", "Smith", "ID002"),
-    ("Alice", "Johnson", "ID003"),
-    ("Bob", "Williams", "ID004")
-]
+# employees = [
+#     ("John", "Doe", "ID001"),
+#     ("Jane", "Smith", "ID002"),
+#     ("Alice", "Johnson", "ID003"),
+#     ("Bob", "Williams", "ID004")
+# ]
 
-users = user_service.get_all()
-print(users)
+employees = user_service.get_all()
+print(employees)
 
 # Display each employee in a Label
-for first_name, last_name, emp_id in employees:
-    tk.Label(employees_frame, text=f"{first_name} {last_name} (ID: {emp_id})").pack()
+for i in range(len(employees)):
+    tk.Label(employees_frame, text=f"{employees[i].username} {employees[i].firstname} {employees[i].lastname} (ID: {employees[i].user_id})").pack()
+
+# for firstname, lastname, user_id in employees:
+#     tk.Label(employees_frame, text=f"{firstname} {lastname} (ID: {user_id})").pack()
 
 # Add a "Back" button to return to the main screen
 back_button = tk.Button(employees_frame, text="Back to Main", command=show_main_screen)
 back_button.pack(pady=10)
 
-# ---------------------------
 #  3) CINEMA SELECTION SCREEN (mock data)
-# ---------------------------
 cinema_frame = tk.Frame(root)
 
 # A label at the top
@@ -181,9 +182,8 @@ button.pack(side="left", padx=5, pady=5)
 back_button = tk.Button(cinema_frame, text="Back to Main", command=show_main_screen)
 back_button.pack(pady=10)
 
-# ---------------------------
+
 #  4) CINEMA EDIT SCREEN
-# ---------------------------
 cinema_edit_frame = tk.Frame(root)
 
 # A label at the top
