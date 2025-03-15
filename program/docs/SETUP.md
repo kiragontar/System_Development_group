@@ -30,7 +30,7 @@ pip install pytest
 pip install mysql-connector-python
 pip install sqlalchemy
 pip install pillow
-pip install pysql
+pip install pymysql
 ```
 There may be more that you need to install so follow the errors if you get any.
 
