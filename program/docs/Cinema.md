@@ -14,13 +14,13 @@ Creates a new cinema.
 
 **Parameters:**
 
--   `name` (str): The name of the cinema.
--   `address` (str): The address of the cinema.
--   `city_id` (int): The ID of the city where the cinema is located.
+- `name` (str): The name of the cinema.
+- `address` (str): The address of the cinema.
+- `city_id` (int): The ID of the city where the cinema is located.
 
 **Returns:**
 
--   `Cinema`: The newly created `Cinema` object.
+- `Cinema`: The newly created `Cinema` object.
 
 **Example:**
 
@@ -48,15 +48,19 @@ print(f"Cinema created: {cinema.cinema_id}")
 ```
 
 ### `get_cinema_by_id(cinema_id)`
+
 Retrieves a cinema by its ID.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema to retrieve.
 
 **Returns:**
+
 - `Cinema`: The `Cinema` object if found, or `None` if not found.
 
 **Example:**
+
 ```python
 # ... (imports and setup as in create_cinema example) ...
 found_cinema = cinema_service.get_cinema_by_id(cinema.cinema_id)
@@ -67,12 +71,15 @@ else:
 ```
 
 ### `get_all_cinemas()`
+
 Retrieves all cinemas.
 
 **Returns:**
+
 - `List[Cinema]`: A list of all `Cinema` objects.
 
 **Example:**
+
 ```python
 # ... (imports and setup as in create_cinema example) ...
 cinemas = cinema_service.get_all_cinemas()
@@ -81,18 +88,22 @@ for cinema in cinemas:
 ```
 
 ### `update_cinema(cinema_id, name=None, address=None, city_id=None)`
+
 Updates a cinema's details.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema to update.
 - `name` (str, optional): The new name of the cinema.
 - `address` (str, optional): The new address of the cinema.
 - `city_id` (int, optional): The new city ID.
 
 **Returns:**
+
 - `Cinema`: The updated `Cinema` object if found, or `None` if not found.
 
 **Example:**
+
 ```python
 # ... (imports and setup as in create_cinema example) ...
 updated_cinema = cinema_service.update_cinema(cinema_id=cinema.cinema_id, name="Updated Cinema Name")
@@ -103,15 +114,19 @@ else:
 ```
 
 ### `delete_cinema(cinema_id)`
+
 Deletes a cinema.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema to delete.
 
 **Returns:**
+
 - `bool`: `True` if the cinema was deleted, `False` if not found.
 
 **Example:**
+
 ```python
 # ... (imports and setup as in create_cinema example) ...
 deleted = cinema_service.delete_cinema(cinema.cinema_id)
@@ -122,15 +137,19 @@ else:
 ```
 
 ### `get_managers(cinema_id)`
+
 Retrieves managers for a cinema.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema.
 
 **Returns:**
+
 - `List[User]`: A list of `User` objects with the 'Manager' role.
 
 **Example:**
+
 ```python
 role = Role(name="Manager")
 session.add(role)
@@ -146,15 +165,19 @@ for manager in managers:
 ```
 
 ### `get_admins(cinema_id)`
+
 Retrieves admins for a cinema.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema.
 
 **Returns:**
+
 - `List[User]`: A list of `User` objects with the 'Admin' role.
 
 **Example:**
+
 ```python
 role = Role(name="Admin")
 session.add(role)
@@ -170,15 +193,19 @@ for admin in admins:
 ```
 
 ### `get_staff(cinema_id)`
+
 Retrieves staff for a cinema.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema.
 
 **Returns:**
+
 - `List[User]`: A list of `User` objects with the 'Staff' role.
 
 **Example:**
+
 ```python
 role = Role(name="Staff")
 session.add(role)
@@ -194,15 +221,19 @@ for staff_member in staff:
 ```
 
 ### `get_screens(cinema_id)`
+
 Retrieves screens for a cinema.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema.
 
 **Returns:**
+
 - `List[Screen]`: A list of `Screen` objects.
 
 **Example:**
+
 ```python
 screen = Screen(screen_id="S1", cinema_id=cinema.cinema_id, capacity_upper=80, capacity_lower=30, capacity_vip=10)
 session.add(screen)
@@ -214,15 +245,19 @@ for screen in screens:
 ```
 
 ### `get_screenings(cinema_id)`
+
 Retrieves screenings for a cinema.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema.
 
 **Returns:**
+
 - `List[Screening]`: A list of `Screening` objects.
 
 **Example:**
+
 ```python
 screen = Screen(screen_id="S1", cinema_id=cinema.cinema_id, capacity_upper=80, capacity_lower=30, capacity_vip=10)
 session.add(screen)
@@ -244,15 +279,19 @@ for screening in screenings:
 ```
 
 ### `get_films(cinema_id)`
+
 Retrieves films for a cinema.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema.
 
 **Returns:**
+
 - `List[Film]`: A list of `Film` objects.
 
 **Example:**
+
 ```python
 film1 = Film(name="Film 1", genre=["Action", "Sci-Fi"], cast=["Actor 1", "Actor 2"],
 description="Description 1", age_rating="PG-13", critic_rating=7.5,
@@ -278,15 +317,19 @@ for film in films:
 ```
 
 ### `get_cinemas_by_city(city_id)`
+
 Retrieves cinemas by city.
 
 **Parameters:**
+
 - `city_id` (int): The ID of the city.
 
 **Returns:**
+
 - `List[Cinema]`: A list of `Cinema` objects.
 
 **Example:**
+
 ```python
 cinemas_in_city = cinema_service.get_cinemas_by_city(city.city_id)
 for cinema_in_city in cinemas_in_city:
@@ -294,15 +337,19 @@ for cinema_in_city in cinemas_in_city:
 ```
 
 ### `get_cinemas_by_film(film_id)`
+
 Retrieves cinemas showing a specific film.
 
 **Parameters:**
+
 - `film_id` (int): The ID of the film.
 
 **Returns:**
+
 - `List[Cinema]`: A list of `Cinema` objects.
 
 **Example:**
+
 ```python
 cinema2 = cinema_service.create_cinema(name="Cinema 2", address="Address 2", city_id=city.city_id)
 
@@ -321,6 +368,7 @@ for cinema in cinemas:
 ```
 
 ## Relationships
+
 - **City:** A cinema belongs to a specific city.
 - **CinemaFilm:** A cinema can have multiple films associated with it.
 - **Screen:** A cinema can have multiple screens.

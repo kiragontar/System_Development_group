@@ -9,16 +9,20 @@ The User Service manages user-related operations, including authentication, user
 The `UserService` class provides the following methods:
 
 ### `login(username, password)`
+
 Authenticates a user based on their username and password.
 
 **Parameters:**
+
 - `username` (str): The username of the user.
 - `password` (str): The password of the user.
 
 **Returns:**
+
 - `bool`: `True` if the user exists and the password matches, otherwise `False`.
 
 **Example:**
+
 ```python
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -58,9 +62,11 @@ print(f"Login successful: {is_logged_in}")
 ```
 
 ### `create_user(username, password, firstname, lastname, role_id, cinema_id=None)`
+
 Creates a new user, assigns them a role, and optionally associates them with a cinema.
 
 **Parameters:**
+
 - `username` (str): The username of the new user.
 - `password` (str): The password of the new user.
 - `firstname` (str): The first name of the new user.
@@ -69,9 +75,11 @@ Creates a new user, assigns them a role, and optionally associates them with a c
 - `cinema_id` (int, optional): The ID of the cinema to associate the user with.
 
 **Returns:**
+
 - `User`: The newly created `User` object.
 
 **Example:**
+
 ```python
 new_user = user_service.create_user(
     username="newuser",
@@ -85,15 +93,19 @@ print(f"New user created: {new_user.username}")
 ```
 
 ### `get_by_user_id(user_id)`
+
 Retrieves a user by their user ID.
 
 **Parameters:**
+
 - `user_id` (int): The ID of the user to retrieve.
 
 **Returns:**
+
 - `Optional[User]`: The `User` object if found, or `None` if not found.
 
 **Example:**
+
 ```python
 user = user_service.get_by_user_id(new_user.user_id)
 if user:
@@ -103,15 +115,19 @@ else:
 ```
 
 ### `get_by_username(username)`
+
 Retrieves a user by their username.
 
 **Parameters:**
+
 - `username` (str): The username of the user to retrieve.
 
 **Returns:**
+
 - `Optional[User]`: The `User` object if found, or `None` if not found.
 
 **Example:**
+
 ```python
 user = user_service.get_by_username("newuser")
 if user:
@@ -121,12 +137,15 @@ else:
 ```
 
 ### `get_all()`
+
 Retrieves all users.
 
 **Returns:**
+
 - `List[User]`: A list of all `User` objects.
 
 **Example:**
+
 ```python
 users = user_service.get_all()
 for user in users:
@@ -134,15 +153,19 @@ for user in users:
 ```
 
 ### `get_all_at_cinema(cinema_id)`
+
 Retrieves all users associated with a specific cinema.
 
 **Parameters:**
+
 - `cinema_id` (int): The ID of the cinema.
 
 **Returns:**
+
 - `List[User]`: A list of `User` objects associated with the cinema.
 
 **Example:**
+
 ```python
 users = user_service.get_all_at_cinema(cinema.cinema_id)
 for user in users:
@@ -150,29 +173,38 @@ for user in users:
 ```
 
 ### `delete_user(user_id)`
+
 Deletes a user by their user ID.
 
 **Parameters:**
+
 - `user_id` (int): The ID of the user to delete.
 
 **Returns:**
+
 - `bool`: `True` if the user was deleted, `False` otherwise.
 
 **Example:**
+
 ```python
 is_deleted = user_service.delete_user(new_user.user_id)
 print(f"User deleted: {is_deleted}")
 ```
+
 ### `validate_password_requirements(password)`
+
 Validates that the password meets required security standards.
 
 **Parameters:**
+
 - `password` (str): The password string to be validated.
 
 **Returns:**
+
 - `bool`: `True` if the password meets the requirements, otherwise `False`.
 
 **Example:**
+
 ```python
 user_input_password = "UserEnteredPassword123!"
 is_valid = user_service.validate_password_requirements(user_input_password)
@@ -180,9 +212,11 @@ print(f"Password valid: {is_valid}")
 ```
 
 ### `update_user(user_id, username=None, firstname=None, lastname=None, role_id=None, cinema_id=None)`
+
 Updates a user's details.
 
 **Parameters:**
+
 - `user_id` (int): The ID of the user to update.
 - `username` (str, optional): The new username.
 - `firstname` (str, optional): The new first name.
@@ -191,9 +225,11 @@ Updates a user's details.
 - `cinema_id` (int, optional): The new cinema ID.
 
 **Returns:**
+
 - `Optional[User]`: The updated `User` object, or `None` if the user is not found.
 
 **Example:**
+
 ```python
 # Assuming you have an existing user 'user'
 updated_user = user_service.update_user(
@@ -211,6 +247,6 @@ else:
 ```
 
 ## Relationships
-- `Role`: Each user is associated with a role 
-- `Cinema`: A user can be associated with a cinema
 
+- `Role`: Each user is associated with a role
+- `Cinema`: A user can be associated with a cinema

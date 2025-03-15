@@ -1,4 +1,40 @@
 import tkinter as tk
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from services.user_service import UserService
+from services.role_service import RoleService
+from services.cinema_service import CinemaService
+from models import Base, User, Role, Cinema, City
+from services.city_service import CityService
+
+# Assuming you have a database engine and session
+DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
+engine = create_engine(DATABASE_URL, echo=True)
+SessionLocal = sessionmaker(bind=engine)
+session = SessionLocal()
+
+# Create test data
+# city = City(name="Test City", country="Test Country")
+# session.add(city)
+# session.commit()
+city_service = CityService(session)
+city = city_service.create_city(name="London", country="UK")
+
+# cinema = Cinema(name="Test Cinema", address="123 Test St", city_id=city.city_id)
+# session.add(cinema)
+# session.commit()
+
+# role = Role(name="Admin")
+# session.add(role)
+# session.commit()
+
+role_service = RoleService(session)
+cinema_service = CinemaService(session)
+
+user_service = UserService(session, role_service, cinema_service)
+user = user_service.create_user()
+# city = city_service.create_city(name="London", country="UK")
+# print(f"City created: {city.city_id}")
 
 # def on_button_click(screen):
 #     if screen == "employee_list":
@@ -92,6 +128,9 @@ employees = [
     ("Alice", "Johnson", "ID003"),
     ("Bob", "Williams", "ID004")
 ]
+
+users = user_service.get_all()
+print(users)
 
 # Display each employee in a Label
 for first_name, last_name, emp_id in employees:
