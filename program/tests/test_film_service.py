@@ -61,3 +61,28 @@ def test_get_all_films_by_id(session, cinema_film_service, film):
     cinema_film_service.add_film_to_cinema(film)
     retrieved_film = cinema_film_service.get_all_films_by_id(film.film_id)
     assert retrieved_film == film
+
+def test_update_film(session, cinema_film_service, film):
+    cinema_film_service.add_film_to_cinema(film)
+    updated_film = cinema_film_service.update_film(
+        film_id=film.film_id,
+        name="Updated Test Film",
+        genre=["Sci-Fi"],
+        cast=["Actor 2"],
+        description="Updated Description",
+        age_rating="R",
+        critic_rating=8.0,
+        runtime=130,
+        release_date=datetime(2023, 2, 1),
+        movie_poster="updated_poster.jpg"
+    )
+    assert updated_film is not None
+    assert updated_film.name == "Updated Test Film"
+    assert updated_film.get_genre() == ["Sci-Fi"]
+    assert updated_film.get_cast() == ["Actor 2"]
+    assert updated_film.description == "Updated Description"
+    assert updated_film.age_rating == "R"
+    assert updated_film.critic_rating == 8.0
+    assert updated_film.runtime == 130
+    assert updated_film.release_date == datetime(2023, 2, 1)
+    assert updated_film.movie_poster == "updated_poster.jpg"

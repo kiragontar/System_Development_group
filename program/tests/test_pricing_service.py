@@ -53,3 +53,20 @@ def test_delete_price(pricing_service, session):
     assert result is True
     deleted_pricing = session.query(CityPricing).filter_by(id=pricing.id).first()
     assert deleted_pricing is None
+
+def test_get_by_id(pricing_service, session):
+    pricing = CityPricing(city="Rome", seat_class="Standard", time_of_day="Evening", price=12.0)
+    session.add(pricing)
+    session.commit()
+    retrieved_pricing = pricing_service.get_by_id(pricing.id)
+    assert retrieved_pricing == pricing
+
+def test_get_all(pricing_service, session):
+    pricing1 = CityPricing(city="Madrid", seat_class="Economy", time_of_day="Morning", price=9.0)
+    pricing2 = CityPricing(city="Amsterdam", seat_class="VIP", time_of_day="Night", price=22.0)
+    session.add_all([pricing1, pricing2])
+    session.commit()
+    all_prices = pricing_service.get_all()
+    assert len(all_prices) == 2
+    assert pricing1 in all_prices
+    assert pricing2 in all_prices

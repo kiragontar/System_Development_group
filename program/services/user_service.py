@@ -120,3 +120,28 @@ class UserService:
             return True
         return False
     
+    def update_user(self, user_id: int, username: str = None, firstname: str = None,
+                    lastname: str = None, role_id: int = None, cinema_id: int = None) -> Optional[User]:
+        """Updates a user's details."""
+        user = self.get_by_user_id(user_id)
+        if user:
+            if username:
+                user.username = username
+            if firstname:
+                user.firstname = firstname
+            if lastname:
+                user.lastname = lastname
+            if role_id:
+                role = self.role_service.get_role_by_id(role_id)
+                if not role:
+                    raise ValueError("Role not found.")
+                user.role_id = role_id
+            if cinema_id is not None:
+                if cinema_id:
+                    cinema = self.cinema_service.get_cinema_by_id(cinema_id)
+                    if not cinema:
+                        raise ValueError("Cinema not found.")
+                user.cinema_id = cinema_id
+            self.session.commit()
+            return user
+        return None

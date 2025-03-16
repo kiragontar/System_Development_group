@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from models import Cinema, Film, CinemaFilm
 from typing import List, Optional
-
+from datetime import datetime
 
 class CinemaFilmService:
     """Manages film-related operations for a specific cinema."""
@@ -38,3 +38,31 @@ class CinemaFilmService:
         if cinema_film:
             self.session.delete(cinema_film)
             self.session.commit()
+
+    def update_film(self, film_id: int, name: str = None, genre: List[str] = None, cast: List[str] = None,
+                    description: str = None, age_rating: str = None, critic_rating: float = None,
+                    runtime: int = None, release_date: datetime = None, movie_poster: str = None) -> Optional[Film]:
+        """Updates a film's details."""
+        film = self.get_all_films_by_id(film_id)
+        if film:
+            if name:
+                film.name = name
+            if genre:
+                film.genre = ','.join(genre)
+            if cast:
+                film.cast = ','.join(cast)
+            if description:
+                film.description = description
+            if age_rating:
+                film.age_rating = age_rating
+            if critic_rating:
+                film.critic_rating = critic_rating
+            if runtime:
+                film.runtime = runtime
+            if release_date:
+                film.release_date = release_date
+            if movie_poster:
+                film.movie_poster = movie_poster
+            self.session.commit()
+            return film
+        return None

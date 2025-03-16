@@ -215,6 +215,45 @@ def test_delete_user(user_service, role, cinema):
     assert user_service.delete_user(user.user_id) is True
     assert user_service.get_by_user_id(user.user_id) is None
 
+def test_update_user(user_service, role, cinema, session):
+    password = "Password123!"
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+    user = User(
+        username="testuser",
+        password_hash=hashed_password.decode('utf-8'),
+        salt=salt.decode('utf-8'),
+        firstname="Test",
+        lastname="User",
+        role_id=role.role_id,
+        cinema_id=cinema.cinema_id
+    )
+    user_service.session.add(user)
+    user_service.session.commit()
+
+    new_role = Role(name="New Role")
+    session.add(new_role)
+    session.commit()
+
+    new_cinema = Cinema(name="New Cinema", address='456 New St', city_id=cinema.city_id)
+    session.add(new_cinema)
+    session.commit()
+
+    updated_user = user_service.update_user(
+        user_id=user.user_id,
+        username="updateduser",
+        firstname="Updated",
+        lastname="User",
+        role_id=new_role.role_id,
+        cinema_id=new_cinema.cinema_id
+    )
+
+    assert updated_user is not None
+    assert updated_user.username == "updateduser"
+    assert updated_user.firstname == "Updated"
+    assert updated_user.role_id == new_role.role_id
+    assert updated_user.cinema_id == new_cinema.cinema_id
+
 def test_validate_password_requirements_success(user_service):
     """Test successful password validation."""
     assert user_service.validate_password_requirements("Password123!") is True
