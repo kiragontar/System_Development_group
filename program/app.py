@@ -30,7 +30,7 @@ DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
 engine = create_engine(DATABASE_URL, echo = True) # Initialises connection to the existing database, echo=True enables debugging (Printing out all queries it executes).
 SessionLocal = sessionmaker(bind=engine) # Creates database sessions
 
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)
 
 print("Tables created successfully!")
 
