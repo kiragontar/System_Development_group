@@ -238,7 +238,17 @@ class ManagerMainScreen:
         messagebox.showinfo("Scheduling", "Scheduling functionality coming soon")
     
     def open_staff_management(self):
-        messagebox.showinfo("Staff Management", "Staff Management functionality coming soon")
+        try:
+            # Get the path to staff_management.py
+            staff_management_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "staff_management.py"
+            )
+            
+            # Run the staff management script
+            subprocess.Popen([sys.executable, staff_management_path])
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open Staff Management: {str(e)}")
     
     def open_reports(self):
         messagebox.showinfo("Reports", "Reports functionality coming soon")

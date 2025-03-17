@@ -710,6 +710,23 @@ load_button = tk.Button(
 )
 load_button.pack(pady=10)
 
+# Add a separator line after the existing buttons
+separator = tk.Frame(buttons_frame, height=2, bg=COLORS['seat_border'])
+separator.pack(fill=tk.X, pady=15)
+
+# Add back button
+back_button = tk.Button(
+    buttons_frame, 
+    text="Back to Manager", 
+    command=root.destroy,  # Simply close this window to return to manager
+    font=("Arial", 12),
+    bg="#e74c3c",  # Red color to distinguish it
+    fg="white",
+    relief="flat",
+    width=15
+)
+back_button.pack(pady=10)
+
 # Add instructions
 instructions = tk.Label(
     buttons_frame,
