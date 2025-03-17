@@ -1,6 +1,7 @@
 import mysql.connector # To connect with the MYsql table created in MYSQL workbench.
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from models import Base
 from models.booking import Booking
 from models.cinema_film import CinemaFilm
 from models.cinema import Cinema
@@ -48,4 +49,8 @@ def test_db_connection():
             print("❌ Error:", e)
 
 test_db_connection()
+
+#Create all tables defined in your models
+#Base.metadata.create_all(engine)
+#print("Tables created successfully!")
 
