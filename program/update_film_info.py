@@ -1,10 +1,12 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
+from PIL import Image, ImageTk
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Film, Cinema, CinemaFilm, City  # Import your models
 from services.film_service import CinemaFilmService  # Import your service
+import os
 
 # Database connection
 DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
@@ -12,185 +14,188 @@ engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
 
-# Create test data
-city = City(name="London", country="UK")
-session.add(city)
-session.commit()
-
-cinema = Cinema(name="Test Cinema", address="123 Test St", city_id=city.city_id)
-session.add(cinema)
-session.commit()
-
-film1 = Film(name="Film 1", genre=["Action", "Sci-Fi"], cast=["Actor 1", "Actor 2"],
-description="Description 1", age_rating="PG-13", critic_rating=7.5,
-runtime=120, release_date=datetime(2024, 1, 1), movie_poster="poster1.jpg")
-
-film2 = Film(name="Film 2", genre=["Comedy"], cast=["Actor 3", "Actor 4"],
-description="Description 2", age_rating="PG", critic_rating=8.0,
-runtime=105, release_date=datetime(2024, 2, 15), movie_poster="poster2.jpg")
-
-session.add_all([film1, film2])
-session.commit()
-
-cinema_film1 = CinemaFilm(cinema_id=cinema.cinema_id, film_id=film1.film_id)
-
-cinema_film2 = CinemaFilm(cinema_id=cinema.cinema_id, 
-film_id=film2.film_id)
-
-session.add_all([cinema_film1, cinema_film2])
-session.commit()
-
-# Fetch the default cinema (modify as needed)
+# Fetch the default cinema
 cinema = session.query(Cinema).first()
+if not cinema:
+    messagebox.showerror("Error", "No cinema found in the database!")
+    exit()
+
 cinema_film_service = CinemaFilmService(cinema, session)
 
 # Create the main application window
 root = tk.Tk()
 root.title("Cinema Film Management")
-root.geometry("900x500")
+root.geometry("1200x700")
+
+# Dictionary to store image references
+poster_images = {}
+selected_poster_path = None
 
 # ===================== UI Components ===================== #
 
+# **Frame to display movie posters**
+poster_frame = tk.Frame(root)
+poster_frame.pack(side=tk.LEFT, padx=10, pady=10)
+poster_label = tk.Label(poster_frame, text="Movie Poster")
+poster_label.pack()
+poster_canvas = tk.Label(poster_frame)
+poster_canvas.pack()
+
+def display_poster(film):
+    if film and film.movie_poster and os.path.exists(film.movie_poster):
+        img = Image.open(film.movie_poster)
+        img = img.resize((150, 200), Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(img)
+        poster_canvas.config(image=img)
+        poster_canvas.image = img
+        poster_label.config(text="")
+    else:
+        poster_canvas.config(image="")
+        poster_canvas.image = None
+        poster_label.config(text="Movie Poster")
+
+def select_poster():
+    global selected_poster_path
+    file_path = filedialog.askopenfilename(title="Select Movie Poster", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
+    if file_path:
+        selected_poster_path = os.path.relpath(file_path)
+        messagebox.showinfo("Success", f"Poster selected: {selected_poster_path}")
+
 # **Table to Display Films**
+table_frame = tk.Frame(root)
+table_frame.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.BOTH, expand=True)
 columns = ("ID", "Name", "Genre", "Rating", "Runtime")
-tree = ttk.Treeview(root, columns=columns, show="headings")
+tree = ttk.Treeview(table_frame, columns=columns, show="headings")
+
 tree.heading("ID", text="ID")
 tree.heading("Name", text="Name")
 tree.heading("Genre", text="Genre")
-tree.heading("Rating", text="Critic Rating")
-tree.heading("Runtime", text="Runtime (min)")
-tree.pack(pady=10, fill=tk.BOTH, expand=True)
+tree.heading("Rating", text="Rating")
+tree.heading("Runtime", text="Runtime")
 
-# **Function to Load Films into Table**
+tree.column("ID", width=50)
+tree.column("Name", width=150)
+tree.column("Genre", width=200)
+tree.column("Rating", width=100)
+tree.column("Runtime", width=100)
+
 def load_films():
-    for item in tree.get_children():
-        tree.delete(item)  # Clear table
+    tree.delete(*tree.get_children())
     films = cinema_film_service.get_all_films()
     for film in films:
-        tree.insert("", "end", values=(film.film_id, film.name, ", ".join(film.genre), film.critic_rating, film.runtime))
+        genre_str = ", ".join(film.get_genre())
+        tree.insert("", "end", values=(film.film_id, film.name, genre_str, film.critic_rating, film.runtime))
 
-load_films()
-
-# **Search by Genre**
-genre_label = tk.Label(root, text="Filter by Genre:")
-genre_label.pack()
-genre_entry = tk.Entry(root)
-genre_entry.pack()
-
-def filter_films():
-    genre = genre_entry.get()
-    if not genre:
-        load_films()
-        return
-    films = cinema_film_service.get_all_films_by_genre(genre)
-    for item in tree.get_children():
-        tree.delete(item)
-    for film in films:
-        tree.insert("", "end", values=(film.film_id, film.name, ", ".join(film.genre), film.critic_rating, film.runtime))
-
-filter_button = tk.Button(root, text="Filter", command=filter_films)
-filter_button.pack()
-
-# ===================== Film Management Buttons ===================== #
-
-# **Add Film Form**
-add_frame = tk.Frame(root)
-add_frame.pack(pady=10)
-
-name_label = tk.Label(add_frame, text="Film Name:")
-name_label.grid(row=0, column=0)
-name_entry = tk.Entry(add_frame)
-name_entry.grid(row=0, column=1)
-
-genre_label = tk.Label(add_frame, text="Genre (comma separated):")
-genre_label.grid(row=1, column=0)
-genre_entry_add = tk.Entry(add_frame)
-genre_entry_add.grid(row=1, column=1)
-
-rating_label = tk.Label(add_frame, text="Critic Rating:")
-rating_label.grid(row=2, column=0)
-rating_entry = tk.Entry(add_frame)
-rating_entry.grid(row=2, column=1)
-
-runtime_label = tk.Label(add_frame, text="Runtime (minutes):")
-runtime_label.grid(row=3, column=0)
-runtime_entry = tk.Entry(add_frame)
-runtime_entry.grid(row=3, column=1)
-
-release_label = tk.Label(add_frame, text="Release Date (YYYY-MM-DD):")
-release_label.grid(row=4, column=0)
-release_entry = tk.Entry(add_frame)
-release_entry.grid(row=4, column=1)
-
-# **Function to Add Film**
-def add_film():
-    name = name_entry.get()
-    genre = [g.strip() for g in genre_entry_add.get().split(",") if g.strip()]
-    rating = float(rating_entry.get())
-    runtime = int(runtime_entry.get())
-    release_date = datetime.strptime(release_entry.get(), "%Y-%m-%d")
-
-    film = Film(
-        name=name, genre=genre, cast=[], description="New Film", age_rating="PG",
-        critic_rating=rating, runtime=runtime, release_date=release_date, movie_poster=""
-    )
-
-    session.add(film)
-    session.commit()
-    cinema_film_service.add_film_to_cinema(film)
-
-    messagebox.showinfo("Success", f"Film '{name}' added successfully!")
-    load_films()
-
-add_button = tk.Button(add_frame, text="Add Film", command=add_film)
-add_button.grid(row=5, columnspan=2, pady=5)
-
-# **Delete Film**
-def delete_film():
+def edit_film():
     selected_item = tree.selection()
     if not selected_item:
-        messagebox.showerror("Error", "Please select a film to delete")
+        messagebox.showerror("Error", "Please select a film to edit")
         return
+    
+    film_id = int(tree.item(selected_item, "values")[0])
+    film = session.query(Film).get(film_id)
+    
+    if not film:
+        messagebox.showerror("Error", "Film not found!")
+        return
+    
+    display_poster(film)
+    
+    name_entry.delete(0, tk.END)
+    genre_entry_add.delete(0, tk.END)
+    rating_entry.delete(0, tk.END)
+    runtime_entry.delete(0, tk.END)
+    release_entry.delete(0, tk.END)
+    description_entry.delete(1.0, tk.END)
+    
+    name_entry.insert(0, film.name)
+    genre_entry_add.insert(0, ", ".join(film.get_genre()))
+    rating_entry.insert(0, str(film.critic_rating))
+    runtime_entry.insert(0, str(film.runtime))
+    release_entry.insert(0, film.release_date.strftime("%Y-%m-%d"))
+    description_entry.insert(tk.END, film.description)
 
-    film_id = tree.item(selected_item, "values")[0]  # Get ID
-    cinema_film_service.remove_film_from_cinema(int(film_id))
-    messagebox.showinfo("Deleted", "Film removed successfully!")
-    load_films()
-
-delete_button = tk.Button(root, text="Delete Selected Film", command=delete_film)
-delete_button.pack(pady=5)
-
-# **Update Film Details**
 def update_film():
     selected_item = tree.selection()
     if not selected_item:
         messagebox.showerror("Error", "Please select a film to update")
         return
-
+    
     film_id = int(tree.item(selected_item, "values")[0])
-    new_name = name_entry.get()
-    new_genre = genre_entry_add.get().split(",")  # Convert string to list
-    new_rating = float(rating_entry.get())
-    new_runtime = int(runtime_entry.get())
-    new_release_date = datetime.strptime(release_entry.get(), "%Y-%m-%d")
-
-    updated_film = cinema_film_service.update_film(
-        film_id=film_id,
-        name=new_name,
-        genre=new_genre,
-        critic_rating=new_rating,
-        runtime=new_runtime,
-        release_date=new_release_date
-    )
-
-    if updated_film:
-        messagebox.showinfo("Success", "Film updated successfully!")
-        load_films()
-    else:
+    film = session.query(Film).get(film_id)
+    
+    if not film:
         messagebox.showerror("Error", "Film not found!")
+        return
+    
+    film.name = name_entry.get()
+    film.critic_rating = float(rating_entry.get())
+    film.runtime = int(runtime_entry.get())
+    film.release_date = datetime.strptime(release_entry.get(), "%Y-%m-%d")
+    film.description = description_entry.get("1.0", tk.END).strip()
+    film.set_genre(genre_entry_add.get().split(", "))
+    
+    global selected_poster_path
+    if selected_poster_path:
+        film.movie_poster = selected_poster_path
+    
+    session.commit()
+    messagebox.showinfo("Success", "Film updated successfully!")
+    load_films()
 
-update_button = tk.Button(root, text="Update Selected Film", command=update_film)
-update_button.pack(pady=5)
+def delete_film():
+    selected_item = tree.selection()
+    if not selected_item:
+        messagebox.showerror("Error", "Please select a film to delete")
+        return
+    
+    film_id = int(tree.item(selected_item, "values")[0])
+    cinema_film_service.remove_film_from_cinema(film_id)
+    messagebox.showinfo("Success", "Film deleted successfully!")
+    load_films()
 
-# ===================== Run the Application ===================== #
+tree.pack(pady=10, fill=tk.BOTH, expand=True)
+
+# **Film Management Form (On Right Side, Aligned with Buttons)**
+form_frame = tk.Frame(root)
+form_frame.pack(side=tk.RIGHT, padx=20, pady=10)
+
+for i, label_text in enumerate(["Film Name:", "Genre (comma separated):", "Critic Rating:", "Runtime (minutes):", "Release Date (YYYY-MM-DD):", "Description:"]):
+    tk.Label(form_frame, text=label_text).grid(row=i, column=0, padx=5, pady=2, sticky="w")
+
+name_entry = tk.Entry(form_frame)
+name_entry.grid(row=0, column=1, padx=5, pady=2)
+
+genre_entry_add = tk.Entry(form_frame)
+genre_entry_add.grid(row=1, column=1, padx=5, pady=2)
+
+rating_entry = tk.Entry(form_frame)
+rating_entry.grid(row=2, column=1, padx=5, pady=2)
+
+runtime_entry = tk.Entry(form_frame)
+runtime_entry.grid(row=3, column=1, padx=5, pady=2)
+
+release_entry = tk.Entry(form_frame)
+release_entry.grid(row=4, column=1, padx=5, pady=2)
+
+description_entry = tk.Text(form_frame, height=4, width=30)
+description_entry.grid(row=5, column=1, padx=5, pady=2)
+
+poster_button = tk.Button(form_frame, text="Select Poster", command=select_poster)
+poster_button.grid(row=6, columnspan=2, pady=5)
+
+button_frame = tk.Frame(form_frame)
+button_frame.grid(row=7, columnspan=2, pady=10)
+
+edit_button = tk.Button(button_frame, text="Edit Selected Film", command=edit_film)
+edit_button.pack(side=tk.LEFT, padx=5)
+
+update_button = tk.Button(button_frame, text="Update Film", command=update_film)
+update_button.pack(side=tk.LEFT, padx=5)
+
+delete_button = tk.Button(button_frame, text="Delete Film", command=delete_film)
+delete_button.pack(side=tk.LEFT, padx=5)
+
+
+load_films()
 root.mainloop()
