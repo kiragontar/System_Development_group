@@ -8,7 +8,7 @@ from models import Film, Cinema, CinemaFilm, City  # Import your models
 from services.film_service import CinemaFilmService  # Import your service
 import os
 
-# Database connection
+# Database 
 DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
 engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(bind=engine)
@@ -150,7 +150,12 @@ def delete_film():
         return
     
     film_id = int(tree.item(selected_item, "values")[0])
-    cinema_film_service.remove_film_from_cinema(film_id)
+    
+    # Remove the film from CinemaFilm first to maintain foreign key constraints
+    session.query(CinemaFilm).filter_by(film_id=film_id).delete()
+    session.query(Film).filter_by(film_id=film_id).delete()
+    session.commit()
+    
     messagebox.showinfo("Success", "Film deleted successfully!")
     load_films()
 
