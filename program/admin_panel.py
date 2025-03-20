@@ -1,227 +1,74 @@
 import tkinter as tk
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from frames.main_menu_frame import MainMenuFrame
+from frames.employees_frame import EmployeesFrame
+from frames.cinema_list_frame import CinemaListFrame
+from frames.cinema_edit_frame import CinemaEditFrame
 from services.user_service import UserService
 from services.role_service import RoleService
 from services.cinema_service import CinemaService
-from models import Base, User, Role, Cinema, City
 from services.city_service import CityService
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-# Assuming you have a database engine and session
 DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
-engine = create_engine(DATABASE_URL, echo=True)
-SessionLocal = sessionmaker(bind=engine)
-session = SessionLocal()
 
-# Create test data
-# city = City(name="Test City", country="Test Country")
-# session.add(city)
-# session.commit()
-city_service = CityService(session)
-# city = city_service.create_city(name="London", country="UK")
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Cinema Application")
+        self.database_url = DATABASE_URL
+        self.engine = create_engine(DATABASE_URL, echo=True)
+        self.SessionLocal = sessionmaker(bind=self.engine)
+        self.session = self.SessionLocal()
 
-# cinema = Cinema(name="Test Cinema", address="123 Test St", city_id=city.city_id)
-# session.add(cinema)
-# session.commit()
+        # Instantiate services
+        self.role_service = RoleService(self.session)
+        self.cinema_service = CinemaService(self.session)
+        self.city_service = CityService(self.session)
+        self.user_service = UserService(self.session, self.role_service, self.cinema_service)
 
-# role = Role(name="Admin")
-# session.add(role)
-# session.commit()
+        # Create a container for your frames
+        container = tk.Frame(self)
+        container.pack(side="top", fill="both", expand=True)
 
-role_service = RoleService(session)
-cinema_service = CinemaService(session)
-user_service = UserService(session, role_service, cinema_service)
+        # Instantiate frames
+        self.main_menu_frame = MainMenuFrame(container, self)
+        self.employees_frame = EmployeesFrame(container, self)
+        self.cinema_list_frame = CinemaListFrame(container, self)
+        self.cinema_edit_frame = CinemaEditFrame(container, self)
 
-# user = user_service.create_user("Konstantinos1", "GetPass123$", "Konstantinos", "Last Name", 1)
-# user = user_service.create_user("Mickel1", "GetPass123$", "Mickel", "Last Name", 1)
-# user = user_service.create_user("Kira1", "GetPass123$", "Kira", "Last Name", 1)
-# city = city_service.create_city(name="London", country="UK")
-# print(f"City created: {city.city_id}")
+        # Store frames in an easy-to-access way
+        self.frames = {
+            "MainMenu": self.main_menu_frame,
+            "Employees": self.employees_frame,
+            "Cinemas": self.cinema_list_frame,
+            "CinemaEdit": self.cinema_edit_frame
+        }
 
-# def on_button_click(screen):
-#     if screen == "employee_list":
-#         # If Button 3 is clicked, show the Employees screen
-#         show_employees_screen()
-#     elif screen == "pick_cinema":
-#         show_cinema_screen()
-#     else:
-#         print(f"Button {screen} clicked!")
+        # Show the main menu first
+        self.show_frame("MainMenu")
 
-def show_main_screen():
-    """Hide the employees screen and show the main screen."""
-    hide_all_screens()  # Hide employees frame
-    main_frame.pack(padx=10, pady=10)  # Show main frame again
+    def show_frame(self, frame_name, *args):
+        """Show the specified frame."""
+        # Hide all frames first
+        for frame in self.frames.values():
+            frame.pack_forget()
 
-def show_employees_screen():
-    """Hide the main screen and show the employees screen."""
-    hide_all_screens() 
-    employees_frame.pack(padx=10, pady=10)  # Show employees frame
+        # Get the frame to display
+        frame = self.frames[frame_name]
 
-def show_cinema_screen():
-    hide_all_screens()
-    cinema_frame.pack(padx=10, pady=10)
+        # If the frame needs to refresh data or accept arguments:
+        if frame_name == "Employees":
+            frame.refresh_employee_list()
+        elif frame_name == "CinemaEdit":
+            name, location, cinema_id, city_id = args
+            frame.show_cinema_details(name, location, cinema_id, city_id)
+        elif frame_name == "Cinemas":
+            frame.refresh_cinema_list()
 
-def show_cinema_edit_screen(name="", location="", cinema_id=""):
-    # Hide other frames
-    hide_all_screens()
+        # Show the selected frame
+        frame.pack(fill="both", expand=True)
 
-    # Pre-fill Entry widgets with the given cinema data
-    name_entry.delete(0, tk.END)
-    name_entry.insert(0, name)
-
-    location_entry.delete(0, tk.END)
-    location_entry.insert(0, location)
-
-    id_entry.delete(0, tk.END)
-    id_entry.insert(0, cinema_id)
-
-    # Show edit frame
-    cinema_edit_frame.pack()
-
-def hide_all_screens():
-    main_frame.pack_forget()
-    employees_frame.pack_forget()
-    cinema_frame.pack_forget()
-    cinema_edit_frame.pack_forget()
-
-# Create main application window
-root = tk.Tk()
-root.title("Switch Screens Example")
-
-#  1) MAIN SCREEN (with 5 buttons)
-main_frame = tk.LabelFrame(root, text="Main Screen")
-main_frame.pack(padx=10, pady=10)
-
-# Create 5 buttons in the main screen
-button = tk.Button(
-    main_frame,
-    text="Employee List",
-    bg="blue",       # background color
-    fg="black",      # text color
-    command=show_employees_screen
-    )
-button.pack(side="left", padx=5, pady=5)
-
-button = tk.Button(
-    main_frame,
-    text="Pick Cinema",
-    bg="blue",       # background color
-    fg="black",      # text color
-    command=show_cinema_screen
-    )
-button.pack(side="left", padx=5, pady=5)
-
-
-
-#  2) EMPLOYEES SCREEN (mock data)
-
-employees_frame = tk.Frame(root)
-
-# A label at the top
-employees_label = tk.Label(employees_frame, text="Employee List", font=("Arial", 14, "bold"))
-employees_label.pack(pady=5)
-
-# Mock data for employees (firstname, lastname, id)
-# employees = [
-#     ("John", "Doe", "ID001"),
-#     ("Jane", "Smith", "ID002"),
-#     ("Alice", "Johnson", "ID003"),
-#     ("Bob", "Williams", "ID004")
-# ]
-
-employees = user_service.get_all()
-print(employees)
-
-# Display each employee in a Label
-for i in range(len(employees)):
-    tk.Label(employees_frame, text=f"{employees[i].username} {employees[i].firstname} {employees[i].lastname} (ID: {employees[i].user_id})").pack()
-
-# for firstname, lastname, user_id in employees:
-#     tk.Label(employees_frame, text=f"{firstname} {lastname} (ID: {user_id})").pack()
-
-# Add a "Back" button to return to the main screen
-back_button = tk.Button(employees_frame, text="Back to Main", command=show_main_screen)
-back_button.pack(pady=10)
-
-#  3) CINEMA SELECTION SCREEN (mock data)
-cinema_frame = tk.Frame(root)
-
-# A label at the top
-cinema_label = tk.Label(cinema_frame, text="Pick a Cinema", font=("Arial", 14, "bold"))
-cinema_label.pack(pady=5)
-
-# Mock data for cinemas
-cinemas = [
-    ("Cinema 1", "Location A", "CIN001"),
-    ("Cinema 2", "Location B", "CIN002"),
-    ("Cinema 3", "Location C", "CIN003"),
-    ("Cinema 4", "Location D", "CIN004")
-]
-
-# Display each cinema in a Label
-for name, location, cinema_id in cinemas:
-    tk.Label(cinema_frame, text=f"{name} ({location}) - ID: {cinema_id}").pack()
-
-for name, location, cinema_id in cinemas:
-    # Create a frame or just a single button for editing
-    edit_button = tk.Button(
-        cinema_frame,
-        text=f"Edit {name}",
-        command=lambda n=name, loc=location, c_id=cinema_id: show_cinema_edit_screen(n, loc, c_id)
-    )
-    edit_button.pack(pady=2)
-
-button = tk.Button(
-    cinema_frame,
-    text="Create Cinema",
-    command=show_cinema_edit_screen
-    )
-button.pack(side="left", padx=5, pady=5)
-
-# Add a "Back" button to return to the main screen
-back_button = tk.Button(cinema_frame, text="Back to Main", command=show_main_screen)
-back_button.pack(pady=10)
-
-
-#  4) CINEMA EDIT SCREEN
-cinema_edit_frame = tk.Frame(root)
-
-# A label at the top
-cinema_edit_label = tk.Label(cinema_edit_frame, text="Edit Cinema", font=("Arial", 14, "bold"))
-cinema_edit_label.pack(pady=5)
-
-# Labels and Entry widgets for cinema details
-name_label = tk.Label(cinema_edit_frame, text="Name:")
-name_label.pack()
-name_entry = tk.Entry(cinema_edit_frame)
-name_entry.pack()
-
-location_label = tk.Label(cinema_edit_frame, text="Location:")
-location_label.pack()
-location_entry = tk.Entry(cinema_edit_frame)
-location_entry.pack()
-
-id_label = tk.Label(cinema_edit_frame, text="Cinema ID:")
-id_label.pack()
-id_entry = tk.Entry(cinema_edit_frame)
-id_entry.pack()
-
-# A simple "Save" button to handle saving the edits
-def save_cinema():
-    # In a real application, you'd have code here
-    # that updates the cinema in your database or data structure.
-    updated_name = name_entry.get()
-    updated_location = location_entry.get()
-    updated_id = id_entry.get()
-    # TODO: Save logic or feedback to user
-    print(f"Saved: {updated_name}, {updated_location}, {updated_id}")
-
-save_button = tk.Button(cinema_edit_frame, text="Save", command=save_cinema)
-save_button.pack(pady=5)
-
-# A "Back" button that returns to the cinema selection screen
-back_button = tk.Button(cinema_edit_frame, text="Back to Cinema List", command=show_cinema_screen)
-back_button.pack(pady=10)
-
-# Start the Tkinter event loop
-root.mainloop()
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
