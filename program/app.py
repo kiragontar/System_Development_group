@@ -17,6 +17,7 @@ from models.screening import Screening
 from models.seat import Seat
 from models.ticket import Ticket
 from models.user import User
+from models import Base  # Import your Base metadata
 
 conn = mysql.connector.connect(
     host="localhost",
@@ -25,11 +26,13 @@ conn = mysql.connector.connect(
     database="Cinema"
 )
 
-
 DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
 engine = create_engine(DATABASE_URL, echo = True) # Initialises connection to the existing database, echo=True enables debugging (Printing out all queries it executes).
 SessionLocal = sessionmaker(bind=engine) # Creates database sessions
 
+# Base.metadata.create_all(engine)
+
+print("Tables created successfully!")
 
 def test_db_connection():
     """

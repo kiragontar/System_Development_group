@@ -6,19 +6,18 @@ The Cinema Booking System Backend provides a comprehensive backend solution for 
 
 ## Key Features
 
--   **Cinema Management:** Add, update, and manage cinema details.
--   **Film Management:** Manage film information, including screenings and details.
--   **Screening Management:** Schedule and manage film screenings.
--   **Screen Management:** Manage screen details, including capacity and layout.
--   **Seat Management:** Manage seat details, including availability and class.
--   **Booking Management:** Create, retrieve, and manage bookings.
--   **Ticket Management:** Create, retrieve, and manage tickets.
--   **User Management:** Handles user registration, login, and roles.
--   **Role and Permission Management:** Manage user roles and permissions.
--   **Payment Processing:** Integrate payment gateways (Stripe) for online transactions.
--   **City Management:** Add, update, and manage city details.
--   **City Pricing Management:** Manage pricing based on city locations and timings (Morning, Afternoon, Night).
-
+- **Cinema Management:** Add, update, and manage cinema details.
+- **Film Management:** Manage film information, including screenings and details.
+- **Screening Management:** Schedule and manage film screenings.
+- **Screen Management:** Manage screen details, including capacity and layout.
+- **Seat Management:** Manage seat details, including availability and class.
+- **Booking Management:** Create, retrieve, and manage bookings.
+- **Ticket Management:** Create, retrieve, and manage tickets.
+- **User Management:** Handles user registration, login, and roles.
+- **Role and Permission Management:** Manage user roles and permissions.
+- **Payment Processing:** Integrate payment gateways (Stripe) for online transactions.
+- **City Management:** Add, update, and manage city details.
+- **City Pricing Management:** Manage pricing based on city locations and timings (Morning, Afternoon, Night).
 
 ## Architecture Overview
 
