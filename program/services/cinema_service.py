@@ -16,6 +16,9 @@ class CinemaService:
     def get_cinema_by_id(self, cinema_id: int) -> Cinema:
         return self.session.query(Cinema).filter_by(cinema_id=cinema_id).first()
 
+    def get_cinema_by_name(self, cinema_name: str) -> Cinema:
+        return self.session.query(Cinema).filter_by(name=cinema_name).first()
+
     def get_all_cinemas(self) -> list[Cinema]:
         return self.session.query(Cinema).all()
 
