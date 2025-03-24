@@ -70,6 +70,25 @@ else:
     print("Cinema not found.")
 ```
 
+### `get_cinema_by_name(cinema_name)`
+Retrieves a cinema by its name.
+
+**Parameters:**
+- `cinema_name` (str): The name of the cinema to retrieve.
+
+**Returns:**
+- `Cinema`: The `Cinema` object if found, or `None` if not found.
+
+**Example:**
+```python
+# ... (imports and setup as in create_cinema example) ...
+found_cinema = cinema_service.get_cinema_by_name(cinema.name)
+if found_cinema:
+    print(f"Cinema found: {found_cinema.name}")
+else:
+    print("Cinema not found.")
+```
+
 ### `get_all_cinemas()`
 
 Retrieves all cinemas.
