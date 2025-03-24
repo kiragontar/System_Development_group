@@ -97,10 +97,10 @@ class ManagerMainScreen:
         # Management functions and their descriptions
         management_functions = [
             {
-                "title": "Seat Layout Management",
-                "description": "Create and modify cinema seating layouts",
+                "title": "Screen and Seats",
+                "description": "Manage cinema screens and seating layouts",
                 "icon": "🪑",  # Unicode icon
-                "command": self.open_seat_layout
+                "command": self.open_screen_and_seats
             },
             {
                 "title": "Movie Management",
@@ -230,6 +230,19 @@ class ManagerMainScreen:
             subprocess.Popen([sys.executable, seat_layout_path])
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open Seat Layout Manager: {str(e)}")
+    
+    def open_screen_and_seats(self):
+        try:
+            # Get the path to seat_layout.py
+            seat_layout_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "seat_layout.py"
+            )
+            
+            # Run the seat layout script
+            subprocess.Popen([sys.executable, seat_layout_path])
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open Screen and Seats Manager: {str(e)}")
     
     def open_movie_management(self):
         messagebox.showinfo("Movie Management", "Movie Management functionality coming soon")

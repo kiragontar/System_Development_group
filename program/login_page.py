@@ -12,12 +12,7 @@ def initialize_window():
     return root
 
 # Set up the main colors and fonts
-header_color = "#333333"
-top_bg_color = "#f8f8f8"
-text_color = "#333333"
-header_font = ("Helvetica", 24, "bold")
-subheader_font = ("Helvetica", 14)
-button_font = ("Helvetica", 16, "bold")
+
 
 # Carousel movie data (now genres are separate)
 carousel_movies = [
@@ -162,11 +157,11 @@ def update_carousel():
         movie_index = (carousel_index + i) % len(carousel_movies)
         movie = carousel_movies[movie_index]
         # Adjusted size for larger images
-        # img = Image.open(movie["image_path"]).resize((450, 250), Image.LANCZOS)  
-        # photo = ImageTk.PhotoImage(img)
-        # img_label.config(image=photo)
-        # img_label.image = photo
-        # img_label.bind("<Button-1>", lambda e, m=movie: show_movie_details(m))
+        img = Image.open(movie["image_path"]).resize((450, 250), Image.LANCZOS)  
+        photo = ImageTk.PhotoImage(img)
+        img_label.config(image=photo)
+        img_label.image = photo
+        img_label.bind("<Button-1>", lambda e, m=movie: show_movie_details(m))
 
 def create_carousel(main_frame):
     carousel_frame = tk.Frame(main_frame, bg=top_bg_color)

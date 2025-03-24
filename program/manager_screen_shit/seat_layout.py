@@ -513,26 +513,50 @@ def initialize_layout():
         font=("Arial", 12, "bold"),
         bg=COLORS['background']
     )
-    seat_count_label.pack(pady=10)
+    seat_count_label.pack(pady=5)
+    
+    # Add constraint notification label
+    constraint_label = tk.Label(
+        new_layout_window, 
+        text="Note: Total seats must be between 50 and 120",
+        font=("Arial", 10, "italic"),
+        bg=COLORS['background'],
+        fg="#555555"  # Gray color for the note
+    )
+    constraint_label.pack(pady=2)
 
     def update_seat_count(event):
         rows = rows_slider.get()
         cols = cols_slider.get()
         total_seats = rows * cols
         seat_count_label.config(text=f"Total Seats: {total_seats}")
+        # Visual feedback on valid/invalid seat count
+        if 50 <= total_seats <= 120:
+            seat_count_label.config(fg="black")  # Normal color for valid count
+        else:
+            seat_count_label.config(fg="red")    # Red for invalid count
 
     rows_slider.bind("<Motion>", update_seat_count)
     cols_slider.bind("<Motion>", update_seat_count)
+    rows_slider.bind("<ButtonRelease-1>", update_seat_count)
+    cols_slider.bind("<ButtonRelease-1>", update_seat_count)
 
     def confirm_new_layout():
         global seats
         rows = rows_slider.get()
         cols = cols_slider.get()
+        total_seats = rows * cols
+        
+        # Enforce seat count constraint
+        if total_seats < 50 or total_seats > 120:
+            messagebox.showerror("Error", f"Invalid seat count! The layout must have between 50 and 120 seats.\nCurrent count: {total_seats}")
+            return
+            
         if rows > 0 and cols > 0:
             seats = [[None for _ in range(cols)] for _ in range(rows)]
             refresh_layout()
             loaded_layout_label.config(text="New Layout")
-            status_label.config(text=f"Status: Created new layout with {rows} rows and {cols} columns")
+            status_label.config(text=f"Status: Created new layout with {rows} rows and {cols} columns ({total_seats} seats)")
             new_layout_window.destroy()
         else:
             messagebox.showerror("Error", "Invalid layout dimensions!")
