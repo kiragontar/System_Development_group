@@ -81,6 +81,39 @@ else:
     print("Film not found.")
 ```
 
+### `create_film(self, name: str, genre: List[str], cast: List[str],description: str, age_rating: str, critic_rating: float,runtime: int, release_date: datetime, movie_poster: str = None) -> Film:`
+Creates a film.
+
+**Parameters:**
+- `name` (str): The name of the film.
+- `genre` (List[str]): A list of genres for the film.
+- `cast` (List[str]): A list of cast members for the film.
+- `description` (str): A description of the film.
+- `age_rating` (str): The age rating of the film.
+- `critic_rating` (float): The critic rating of the film.
+- `runtime` (int): The runtime of the film in minutes.
+- `release_date` (datetime): The release date of the film.
+- `movie_poster` (str, optional): The file path to the movie poster (optional).
+
+**Returns:**
+- `Film`: The newly created `Film` object.
+
+**Example:**
+```
+You just have to create it using the function, and then connect it with *add_film_to_cinema(film)*
+```
+
+### `delete_film(film_id: int)`
+Deletes a Film.
+
+**Parameters:**
+- `film_id (int)`: The film id of the `Film` object.
+
+**Example:**
+```python
+cinema_film_service.delete_film(film_id)
+```
+
 ### `add_film_to_cinema(film)`
 Adds a film to the cinema.
 

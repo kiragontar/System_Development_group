@@ -68,7 +68,10 @@ class Film(Base):
 
     def get_cast(self) -> List[str]:
         """Returns the cast as a list of names."""
-        return self.cast.split(',')
+        if self.cast:
+            return [member.strip() for member in self.cast.split(',')]
+        else:
+            return []
 
     def get_description(self) -> str:
         """Returns the film's description."""

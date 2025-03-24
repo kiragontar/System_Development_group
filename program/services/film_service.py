@@ -25,7 +25,44 @@ class CinemaFilmService:
             if film.film_id == film_id:
                 return film
         return None
-    
+    # Add method to create film.
+    def create_film(self, name: str, genre: List[str], cast: List[str], 
+                 description: str, age_rating: str, critic_rating: float, 
+                 runtime: int, release_date: datetime, movie_poster: str = None) -> Film:
+        """Creates a new film"""
+        try:
+            new_film = Film(
+                name=name,
+                genre=genre,
+                cast=','.join(cast),
+                description=description,
+                age_rating=age_rating,
+                critic_rating=critic_rating,
+                runtime=runtime,
+                release_date=release_date,
+                movie_poster=movie_poster
+            )
+            self.session.add(new_film)
+            self.session.commit()
+            return new_film
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Failed to create film: {e}")
+
+    def delete_film(self, film_id: int) -> None:
+        """Deletes a film."""
+        try:
+            film = self.session.query(Film).filter(Film.film_id == film_id).first()
+            if film:
+                self.session.delete(film)
+                self.session.commit()
+            else:
+                raise ValueError(f"Film with ID {film_id} not found.")
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Failed to delete film: {e}")
+
+
     def add_film_to_cinema(self, film: Film) -> None:
         """Adds a film to the cinema."""
         cinema_film = CinemaFilm(cinema_id=self.cinema.cinema_id, film_id=film.film_id)
