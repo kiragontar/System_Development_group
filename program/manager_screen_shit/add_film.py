@@ -1,3 +1,5 @@
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from PIL import Image, ImageTk
@@ -15,10 +17,16 @@ engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
 
-cinema = session.query(Cinema).first()
-if not cinema:
-    messagebox.showerror("Error", "No cinema found in the database!")
+if len(sys.argv) < 2:
+    messagebox.showerror("Error", "Cinema ID not provided!")
     exit()
+
+cinema_id = int(sys.argv[1])
+cinema = session.query(Cinema).filter_by(cinema_id=cinema_id).first()
+if not cinema:
+    messagebox.showerror("Error", f"Cinema with ID {cinema_id} not found!")
+    exit()
+
 
 cinema_film_service = CinemaFilmService(cinema, session)
 
@@ -65,7 +73,12 @@ def select_poster():
 
 def open_update_film():
     try:
-        subprocess.Popen(["python", "program\\update_film.py"])
+        import subprocess
+        import sys
+        import os
+
+        script_path = os.path.join(os.path.dirname(__file__), "update_film.py")
+        subprocess.Popen([sys.executable, script_path, str(cinema.cinema_id)])
         root.destroy()
     except Exception as e:
         messagebox.showerror("Error", f"Could not open Update Film page:\n{e}")

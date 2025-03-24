@@ -245,7 +245,18 @@ class ManagerMainScreen:
             messagebox.showerror("Error", f"Failed to open Screen and Seats Manager: {str(e)}")
     
     def open_movie_management(self):
-        messagebox.showinfo("Movie Management", "Movie Management functionality coming soon")
+        try:
+            # Get the path to seat_layout.py
+            seat_layout_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "select_cinema_city.py"
+            )
+            self.root.destroy()
+            
+            # Run the seat layout script
+            subprocess.Popen([sys.executable, seat_layout_path])
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open movie management: {str(e)}")
     
     def open_scheduling(self):
         messagebox.showinfo("Scheduling", "Scheduling functionality coming soon")
