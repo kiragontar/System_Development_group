@@ -4,7 +4,7 @@ from backend.models import Base, City, Cinema, Role
 from backend.user_service import UserService
 
 # Use pymysql with cryptography
-DATABASE_URL = "mysql+pymysql://shrimp:shrimp@127.0.0.1:3306/cinema"
+DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)

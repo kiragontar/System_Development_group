@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from backend.models import Base, User
 from backend.role_service import RoleService
 
-DATABASE_URL = "mysql+pymysql://shrimp:shrimp@127.0.0.1:3306/cinema"
+DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()

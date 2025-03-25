@@ -111,7 +111,7 @@ def main(user=None):
     from sqlalchemy.orm import sessionmaker
 
     # Database setup
-    DATABASE_URL = "mysql+pymysql://shrimp:shrimp@127.0.0.1:3306/cinema"
+    DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
     engine = create_engine(DATABASE_URL)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)

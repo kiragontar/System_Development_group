@@ -7,7 +7,7 @@ from backend.role_service import RoleService
 from backend.permission_service import PermissionService
 
 
-DATABASE_URL = "mysql+pymysql://shrimp:shrimp@127.0.0.1:3306/cinema"
+DATABASE_URL = "mysql+pymysql://MickelUWE:g<bI1Z11iC]c@localhost:3306/cinema"
 
 # Create engine and session
 engine = create_engine(DATABASE_URL, echo=True)
