@@ -42,7 +42,7 @@ class Screening(Base):
         self.vip_sold = vip_sold
 
     @classmethod
-    def create_screening(cls, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> 'Screening':
+    def create_screening(cls, screen_id: str, film_id: int, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> 'Screening':
         """
         Creates a new Screening object and sets its attributes.
         """
@@ -58,7 +58,7 @@ class Screening(Base):
         )
         return screening
 
-    def get_screening_id(self) -> str:
+    def get_screening_id(self) -> int:
         """
         Retrieves the unique identifier of the screening.
 

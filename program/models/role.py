@@ -7,17 +7,6 @@ from . import Base, role_permission_association  # Import your Base from models/
 class Role(Base):
     """
     Represents a user role in the cinema booking system.
-
-    This model defines different user roles and their associated permissions. 
-    Each role can be assigned to multiple users, establishing a one-to-many relationship.
-
-    Attributes:
-        role_id (int): Primary key, uniquely identifying each role.
-        name (str): Unique name of the role (e.g., Admin, Staff).
-        users (List[User]): Relationship to the User model, allowing bidirectional access.
-
-    Methods:
-        __repr__(): Returns a string representation of the Role instance.
     """
     __tablename__ = 'roles'
 

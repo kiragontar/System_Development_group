@@ -33,7 +33,7 @@ class Film(Base):
         Initializes a Film object with provided attributes.
         
         Parameters:
-        - film_id (str): Auto incremented so no need to include it
+        - film_id (int): Auto incremented so no need to include it
         - name (str): Title of the film.
         - genre (List[str]): List of Genres of the film.
         - cast (List[str]): List of cast members.
@@ -54,7 +54,7 @@ class Film(Base):
         self.release_date = release_date
         self.movie_poster = movie_poster
 
-    def get_id(self) -> str:
+    def get_id(self) -> int:
         """Returns the unique film ID."""
         return self.film_id
 
@@ -62,8 +62,8 @@ class Film(Base):
         """Returns the film's name."""
         return self.name
 
-    def get_genre(self) -> str:
-        """Returns the film's genre."""
+    def get_genre(self) -> List[str]:
+        """Returns the film's genres as a list of strings"""
         return self.genre.split(',')
 
     def get_cast(self) -> List[str]:
@@ -104,7 +104,7 @@ class Film(Base):
         else:
             raise ValueError("Name cannot be empty.")
         
-    def set_genre(self, genre: str) -> None:
+    def set_genre(self, genre: List[str]) -> None:
         """Updates the film's genre."""
         if genre:
             self.genre = ','.join(genre)
@@ -167,6 +167,7 @@ class Film(Base):
     def create_genre(self, new_genre: str) -> None:
         """Adds a new genre to the film."""
         genres = self.get_genre()
+        new_genre = new_genre.strip()
         if new_genre not in genres:
             genres.append(new_genre)
             self.set_genre(genres)
@@ -174,6 +175,7 @@ class Film(Base):
     def delete_genre(self, genre_to_remove: str) -> None:
         """Removes a specific genre from the film."""
         genres = self.get_genre()
+        genre_to_remove = genre_to_remove.strip()
         if genre_to_remove in genres:
             genres.remove(genre_to_remove)
             self.set_genre(genres)

@@ -11,18 +11,6 @@ class User(Base):
     This model stores user information, including personal details, authentication credentials, 
     and role assignments. It also establishes relationships with the Role and Cinema models.
 
-    Attributes:
-        user_id (int): Primary key, uniquely identifying each user.
-        username (str): Unique username for authentication.
-        password (str): Hashed password for secure authentication.
-        firstname (str): First name of the user.
-        lastname (str): Last name of the user.
-        role_id (int): Foreign key linking to the Role table, defining the user's role.
-        cinema_id (int, optional): Foreign key linking to the Cinema table, if the user is associated with a specific cinema.
-        role (Role): Relationship with the Role model, enabling bidirectional access.
-    
-    Methods:
-        __repr__(): Returns a string representation of the User instance.
     """
     __tablename__ = 'users'
 

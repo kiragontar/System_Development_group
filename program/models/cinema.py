@@ -7,15 +7,6 @@ from . import Base
 class Cinema(Base):
     """
     Represents a cinema entity, including its details like name, address, and relationships with films, screens, and screenings.
-
-    Attributes:
-        cinema_id (int): Unique identifier for the cinema.
-        city_id (int): City ID the cinema belongs to.
-        name (str): The name of the cinema.
-        address (str): The address of the cinema.
-        films (CinemaFilms): Films that are available in this cinema.
-        screens (Screen): Screens in the cinema.
-        screenings (Screening): Screenings held in the cinema.
     """
     __tablename__ = "cinemas" # This matches the table name.
 

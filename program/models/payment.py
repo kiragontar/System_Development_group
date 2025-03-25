@@ -49,6 +49,17 @@ class Payment(Base):
     def get_payment_status(self) -> PaymentStatus:
         return self.payment_status
 
+    def set_payment_method(self, payment_method: str) -> None:
+        self.payment_method = payment_method
+
+    def set_payment_date(self, payment_date: datetime) -> None:
+        if not isinstance(payment_date, datetime):
+            raise ValueError("payment_date must be a datetime object.")
+        self.payment_date = payment_date
+
+    def set_amount(self, amount: float) -> None:
+        self.amount = amount
+
     def set_transaction_id(self, transaction_id: str) -> None:
         self.transaction_id = transaction_id
 

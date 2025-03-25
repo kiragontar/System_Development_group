@@ -12,7 +12,6 @@ from models.screen import Screen
 from models.film import Film
 from models.city_pricing import CityPricing
 from services.ticket_service import TicketService
-from services.pricing_service import PricingService
 import datetime
 
 # Setup a test database
@@ -29,13 +28,10 @@ def session():
     session.close()
     Base.metadata.drop_all(bind=engine)
 
-@pytest.fixture
-def pricing_service(session):
-    return PricingService(session)
 
 @pytest.fixture
-def ticket_service(session, pricing_service):
-    return TicketService(session, pricing_service)
+def ticket_service(session):
+    return TicketService(session)
 
 @pytest.fixture
 def city(session):
@@ -109,43 +105,35 @@ def seat(session, screen): # screen is now a dependency.
     session.commit()
     return seat
 
-@pytest.fixture
-def city_pricing(session):
-    pricing = CityPricing(city="Test City", seat_class="Lower Class", time_of_day="Morning", price=10.0)
-    session.add(pricing)
-    session.commit()
-    return pricing
 
-
-def test_create_ticket(ticket_service, session, booking, seat, screening, city_pricing):
+def test_create_ticket(ticket_service, session, booking, seat, screening):
     # Make sure to set up the pricing service data to have the correct price.
-    # I will assume the pricing service returns 10.0 for standard seats in the morning in test city.
-    ticket = ticket_service.create_ticket(booking.booking_id, seat.seat_id, screening.screening_id, "Test City", "Morning" )
+    ticket = ticket_service.create_ticket(booking.booking_id, seat.seat_id, screening.screening_id, 10.0)
     assert ticket.booking_id == booking.booking_id
     assert ticket.seat_id == seat.seat_id
     assert ticket.screening_id == screening.screening_id
-    assert ticket.ticket_price == 10.0
+    assert ticket.original_ticket_price == 10.0
     retrieved_ticket = session.query(Ticket).filter_by(ticket_id=ticket.ticket_id).first()
     assert retrieved_ticket == ticket
 
 def test_get_ticket_by_id(ticket_service, session, booking, seat, screening):
-    ticket = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, ticket_price=10.0)
+    ticket = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, original_ticket_price= 10.0)
     session.add(ticket)
     session.commit()
     retrieved_ticket = ticket_service.get_ticket_by_id(ticket.ticket_id)
     assert retrieved_ticket == ticket
 
 def test_get_tickets_by_booking(ticket_service, session, booking, seat, screening):
-    ticket1 = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, ticket_price=10.0)
-    ticket2 = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, ticket_price=10.0)
+    ticket1 = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, original_ticket_price= 10.0)
+    ticket2 = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, original_ticket_price= 10.0)
     session.add_all([ticket1, ticket2])
     session.commit()
     tickets = ticket_service.get_tickets_by_booking(booking.booking_id)
     assert len(tickets) == 2
 
 def test_get_tickets_by_screening(ticket_service, session, booking, seat, screening):
-    ticket1 = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, ticket_price=10.0)
-    ticket2 = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, ticket_price=10.0)
+    ticket1 = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, original_ticket_price= 10.0)
+    ticket2 = Ticket(booking_id=booking.booking_id, seat_id=seat.seat_id, screening_id=screening.screening_id, original_ticket_price= 10.0)
     session.add_all([ticket1, ticket2])
     session.commit()
     tickets = ticket_service.get_tickets_by_screening(screening.screening_id)

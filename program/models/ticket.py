@@ -15,21 +15,21 @@ class Ticket(Base):
     booking_id = Column(String(255), ForeignKey('bookings.booking_id'), nullable=False)
     seat_id = Column(Integer, ForeignKey('seats.seat_id'), nullable=False)
     screening_id = Column(Integer, ForeignKey('screenings.screening_id'), nullable=False)
-    ticket_price = Column(Float, nullable=False)
     issue_date = Column(DateTime, nullable=False)
     qr_code = Column(String(255), nullable=True)
+    original_ticket_price = Column(Float, nullable=False)
 
     booking = relationship('Booking', back_populates='tickets')
     seat = relationship('Seat', back_populates='tickets')
     screening = relationship('Screening', back_populates='tickets')
 
-    def __init__(self, booking_id: str, seat_id: int, screening_id: int, ticket_price: float, qr_code: str = None):
+    def __init__(self, booking_id: str, seat_id: int, screening_id: int, original_ticket_price: float, qr_code: str = None):
         self.booking_id = booking_id
         self.seat_id = seat_id
         self.screening_id = screening_id
-        self.ticket_price = ticket_price
         self.issue_date = datetime.now()
         self.qr_code = qr_code
+        self.original_ticket_price = original_ticket_price
 
     def get_ticket_id(self) -> int:
         return self.ticket_id
@@ -43,17 +43,29 @@ class Ticket(Base):
     def get_screening(self) -> 'Screening':
         return self.screening
 
-    def get_ticket_price(self) -> float: # This is different to the booking price as this is the ticket for one seat, so one person.
-        return self.ticket_price
-
     def get_issue_date(self) -> datetime:
         return self.issue_date
+    
+    def get_original_ticket_price(self) -> float:
+        """Gets the original ticket price."""
+        return self.original_ticket_price
 
     def get_qr_code(self) -> str:
         return self.qr_code
 
+    def set_issue_date(self, issue_date: datetime) -> None:
+        if not isinstance(issue_date, datetime):
+            raise ValueError("issue_date must be a datetime object.")
+        self.issue_date = issue_date
+
     def set_qr_code(self, qr_code: str) -> None:
         self.qr_code = qr_code
+    
+    def set_original_ticket_price(self, price: float) -> None:
+        """Sets the original ticket price."""
+        if price < 0:
+            raise ValueError("Ticket price cannot be negative.")
+        self.original_ticket_price = price
 
     def __repr__(self) -> str:
         return f"<Ticket(ticket_id={self.ticket_id}, booking_id='{self.booking_id}', seat_id={self.seat_id}, screening_id='{self.screening_id}')>"

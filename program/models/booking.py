@@ -73,6 +73,11 @@ class Booking(Base):
         else:
             raise ValueError("Screening cannot be None")
 
+    def set_booking_time(self, booking_time : datetime) -> None:
+        if not isinstance(booking_time, datetime):
+            raise ValueError("booking_time must be a datetime object.")
+        self.booking_time = booking_time
+
     def set_price(self, price: float) -> None:
         if price >= 0:
             self.price = price
@@ -100,15 +105,4 @@ class Booking(Base):
         else:
             raise ValueError("Seats cannot be empty")
 
-    def cancel(self) -> None:
-        """Cancels the booking."""
-        self.payment_status = PaymentStatus.REFUNDED
-        # Additional logic to update seat availability and issue refunds
-        pass
-
-    def place(self) -> None:
-        """Places the booking."""
-        self.payment_status = PaymentStatus.PAID
-        # Additional logic to update seat availability and generate a ticket
-        pass
     
