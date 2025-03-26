@@ -15,13 +15,14 @@ class Screen(Base):
     __tablename__ = 'screens'
 
     screen_id = Column(String(255), primary_key=True)  # Unique identifier for the screen
+    cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'), primary_key=True)  # Foreign key to the cinema
     capacity_upper = Column(Integer, nullable=False)  # Upper section seating capacity
     capacity_lower = Column(Integer, nullable=False)  # Lower section seating capacity
     capacity_vip = Column(Integer, nullable=False)  # VIP seating capacity
     total_capacity = Column(Integer, nullable=False)  # Total seating capacity (calculated)
 
     # Relationship to Cinema (one screen belongs to one cinema)
-    cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'))
+    
     cinema = relationship('Cinema', back_populates='screens')
     screenings = relationship('Screening', back_populates='screen')  # Screenings on this screen
     seats = relationship('Seat', back_populates='screen')

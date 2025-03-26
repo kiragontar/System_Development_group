@@ -20,8 +20,8 @@ class Booking(Base):
     price = Column(Float, nullable=False)
     payment_status = Column(Enum(PaymentStatus), nullable=False)
     customer_name = Column(String(255), nullable=False)
-    customer_email = Column(String(255), nullable=True)
-    customer_phone = Column(String(255), nullable=True)
+    customer_email = Column(String(255), nullable=True, unique=True)
+    customer_phone = Column(String(255), nullable=True, unique=True)
 
     # Relationship to Screening
     screening = relationship('Screening', back_populates='bookings')

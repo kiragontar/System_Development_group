@@ -11,6 +11,13 @@ class CinemaFilmService:
         self.cinema = cinema
         self.session = session
 
+    def get_film_by_name(self, film_name: str) -> Film:
+        """Retrieves a film by its name."""
+        film = self.session.query(Film).filter_by(name=film_name).first()
+        if film is None:
+            raise ValueError(f"Film with name {film_name} not found.")
+        return film
+
     def get_all_films(self) -> List[Film]:
         """Retrieves all films showing at the cinema."""
         return self.cinema.get_films()
@@ -34,7 +41,7 @@ class CinemaFilmService:
             new_film = Film(
                 name=name,
                 genre=genre,
-                cast=','.join(cast),
+                cast=cast,
                 description=description,
                 age_rating=age_rating,
                 critic_rating=critic_rating,
@@ -65,6 +72,8 @@ class CinemaFilmService:
 
     def add_film_to_cinema(self, film: Film) -> None:
         """Adds a film to the cinema."""
+        if self.cinema is None:
+            raise ValueError("Cinema must be set before adding a film.")
         cinema_film = CinemaFilm(cinema_id=self.cinema.cinema_id, film_id=film.film_id)
         self.session.add(cinema_film)
         self.session.commit()

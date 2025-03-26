@@ -12,9 +12,9 @@ class ScreeningService:
         """Initializes the ScreeningService with a session."""
         self.session = session
 
-    def create_screening(self, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> Screening:
+    def create_screening(self, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, cinema_id: int, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> Screening:
         """Creates a new screening."""
-        screening = Screening.create_screening(screen_id, film_id, date, start_time, end_time, lower_hall_sold, upper_hall_sold, vip_sold)
+        screening = Screening.create_screening(screen_id, film_id, date, start_time, end_time, cinema_id, lower_hall_sold, upper_hall_sold, vip_sold)
         self.session.add(screening)
         self.session.commit()
         return screening
@@ -27,7 +27,7 @@ class ScreeningService:
         """Retrieves all screenings."""
         return self.session.query(Screening).all()
 
-    def update_screening(self, screening_id: str, screen_id: str = None, film_id: str = None, date: datetime = None, start_time: datetime = None, end_time: datetime = None, lower_hall_sold: int = None, upper_hall_sold: int = None, vip_sold: int = None) -> Optional[Screening]:
+    def update_screening(self, screening_id: str, screen_id: str = None, film_id: str = None, date: datetime = None, start_time: datetime = None, end_time: datetime = None, cinema_id: int = None, lower_hall_sold: int = None, upper_hall_sold: int = None, vip_sold: int = None) -> Optional[Screening]:
         """Updates a screening's details."""
         screening = self.get_screening_by_id(screening_id)
         if screening:
@@ -41,6 +41,8 @@ class ScreeningService:
                 screening.set_start_time(start_time)
             if end_time:
                 screening.set_end_time(end_time)
+            if cinema_id:
+                screening.cinema_id = cinema_id
             if lower_hall_sold is not None:
                 screening.set_lower_hall_sold(lower_hall_sold)
             if upper_hall_sold is not None:
@@ -70,3 +72,7 @@ class ScreeningService:
         if screening:
             return self.session.query(Screen).filter_by(screen_id=screening.screen_id).first()
         return None
+    
+    def get_screenings_for_cinema(self, cinema_id: int) -> List[Screening]:
+        """Retrieves all screenings for a given cinema."""
+        return self.session.query(Screening).filter_by(cinema_id=cinema_id).all()

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, UniqueConstraint
 from . import Base
 
 
@@ -10,6 +10,8 @@ class CityPricing(Base):
     seat_class = Column(String(255), nullable=False)
     time_of_day = Column(String(255), nullable=False)
     price = Column(Float, nullable=False)
+
+    __table_args__ = (UniqueConstraint('city', 'seat_class', 'time_of_day', name='_city_seat_time_uc'),)
 
     def __init__(self, city: str, seat_class: str, time_of_day: str, price: float):
         self.city = city

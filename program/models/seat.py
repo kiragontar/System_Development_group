@@ -10,6 +10,7 @@ class Seat(Base):
 
     seat_id = Column(Integer, primary_key=True, autoincrement=True)
     screen_id = Column(String(255), ForeignKey('screens.screen_id'), nullable=False)
+    cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'), nullable=False)
     row_number = Column(Integer, nullable=False)
     seat_number = Column(Integer, nullable=False)
     seat_class = Column(String(255), nullable=False)
@@ -18,9 +19,11 @@ class Seat(Base):
     screen = relationship('Screen', back_populates='seats')
     bookings = relationship('Booking', secondary=booking_seat_association, back_populates='seats')
     tickets = relationship('Ticket', back_populates='seat')
+    cinema = relationship('Cinema', back_populates='seats')
 
-    def __init__(self, screen_id: int, row_number: int, seat_number: int, seat_class: str):
+    def __init__(self, screen_id: int, cinema_id: int, row_number: int, seat_number: int, seat_class: str):
         self.screen_id = screen_id
+        self.cinema_id = cinema_id
         self.row_number = row_number
         self.seat_number = seat_number
         self.seat_class = seat_class

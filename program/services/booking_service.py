@@ -45,27 +45,31 @@ class BookingService:
         self.session.add(booking)
         self.session.flush()
 
+        screen = self.session.query(Screen).filter_by(screen_id=screening.screen_id, cinema_id=screening.cinema_id).first()
+        cinema = self.session.query(Cinema).filter_by(cinema_id=screen.cinema_id).first()
+        city_obj = self.session.query(City).filter_by(city_id= cinema.city_id).first()
+        if city_obj:
+            city = city_obj.name
+        else:
+            city = "DefaultCity"
         for seat in seats:
-            screen = self.session.query(Screen).filter_by(screen_id=screening.screen_id).first()
-            cinema = self.session.query(Cinema).filter_by(cinema_id=screen.cinema_id).first()
-            city_obj = self.session.query(City).filter_by(city_id= cinema.city_id).first()
-            if city_obj:
-                city = city_obj.name
-            else:
-                city = "DefaultCity"
-
             # Determine time of day from screening start time
             start_hour = screening.start_time.hour
-            if 6 <= start_hour < 12:
+            if 8 <= start_hour < 12:
                 time_of_day = "Morning"
-            elif 12 <= start_hour < 18:
+            elif 12 <= start_hour < 17:
                 time_of_day = "Afternoon"
             else:
                 time_of_day = "Evening"
 
             # Get price from PricingService
-            ticket_price = self.pricing_service.get_price(city, seat.seat_class, time_of_day)
-            total_price += ticket_price
+            try: 
+                ticket_price = self.pricing_service.get_price(city, seat.seat_class, time_of_day)
+                total_price += ticket_price
+            except ValueError as e:
+                print(f"Error getting price : {e}")
+                total_price = -1
+                break
 
             ticket = self.ticket_service.create_ticket(
                 booking_id=booking_id,
@@ -73,6 +77,10 @@ class BookingService:
                 screening_id=screening_id,
                 original_ticket_price= ticket_price
             )
+        if total_price == -1:
+            self.session.rollback()
+            raise ValueError("Could not get price for one or more seats.")
+
         booking.price = total_price
         self.session.commit()
         return booking

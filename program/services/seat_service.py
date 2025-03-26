@@ -6,9 +6,9 @@ class SeatService:
     def __init__(self, session: Session):
         self.session = session
 
-    def create_seat(self, screen_id: int, row_number: int, seat_number: int, seat_class: str) -> Seat:
+    def create_seat(self, screen_id: int, cinema_id: int, row_number: int, seat_number: int, seat_class: str) -> Seat:
         """Creates a new seat."""
-        seat = Seat(screen_id=screen_id, row_number=row_number, seat_number=seat_number, seat_class=seat_class)
+        seat = Seat(screen_id=screen_id, cinema_id=cinema_id, row_number=row_number, seat_number=seat_number, seat_class=seat_class)
         self.session.add(seat)
         self.session.commit()
         return seat
@@ -32,12 +32,14 @@ class SeatService:
         seats = self.session.query(Seat).filter_by(screen_id=screen_id).all()
         return seats
     
-    def update_seat(self, seat_id: int, screen_id: int = None, row_number: int = None, seat_number: int = None, seat_class: str = None) -> Seat:
+    def update_seat(self, seat_id: int, screen_id: int = None, cinema_id: int = None, row_number: int = None, seat_number: int = None, seat_class: str = None) -> Seat:
         """Updates a seat by its ID."""
         seat = self.session.query(Seat).filter_by(seat_id=seat_id).first()
         if seat:
             if screen_id is not None:
                 seat.screen_id = screen_id
+            if cinema_id is not None: 
+                seat.cinema_id = cinema_id
             if row_number is not None:
                 seat.row_number = row_number
             if seat_number is not None:

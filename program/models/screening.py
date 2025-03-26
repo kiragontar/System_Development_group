@@ -15,12 +15,13 @@ class Screening(Base):
     screening_id = Column(Integer, primary_key=True, autoincrement=True)
     screen_id = Column(String(255), ForeignKey('screens.screen_id'))
     film_id = Column(Integer, ForeignKey('films.film_id'))
-    date = Column(Date) # Change back to DateTime for no testing.
+    date = Column(Date)
     start_time = Column(DateTime)
     end_time = Column(DateTime)
     lower_hall_sold = Column(Integer)
     upper_hall_sold = Column(Integer)
     vip_sold = Column(Integer)
+    cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'))
 
     # Relationships
     screen = relationship('Screen', back_populates='screenings')
@@ -28,7 +29,7 @@ class Screening(Base):
     bookings = relationship('Booking', back_populates='screening')
     tickets = relationship('Ticket', back_populates='screening')
 
-    def __init__(self, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int, upper_hall_sold: int, vip_sold: int):
+    def __init__(self, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int, upper_hall_sold: int, vip_sold: int, cinema_id: int):
         """
         Initializes a new Screening object with the provided attributes.
         """
@@ -40,9 +41,10 @@ class Screening(Base):
         self.lower_hall_sold = lower_hall_sold
         self.upper_hall_sold = upper_hall_sold
         self.vip_sold = vip_sold
+        self.cinema_id = cinema_id
 
     @classmethod
-    def create_screening(cls, screen_id: str, film_id: int, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> 'Screening':
+    def create_screening(cls, screen_id: str, film_id: int, date: datetime, start_time: datetime, end_time: datetime, cinema_id: int, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> 'Screening':
         """
         Creates a new Screening object and sets its attributes.
         """
@@ -55,6 +57,7 @@ class Screening(Base):
             lower_hall_sold=lower_hall_sold,
             upper_hall_sold=upper_hall_sold,
             vip_sold=vip_sold,
+            cinema_id=cinema_id,
         )
         return screening
 

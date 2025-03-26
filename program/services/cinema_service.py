@@ -64,9 +64,6 @@ class CinemaService:
     def get_screens(self, cinema_id: int) -> list['Screen']:
         return self.session.query(Screen).filter_by(cinema_id=cinema_id).all()
 
-    def get_screenings(self, cinema_id: int) -> list['Screening']:
-        return self.session.query(Screening).filter_by(cinema_id=cinema_id).all()
-
     def get_films(self, cinema_id: int) -> list['CinemaFilm']:
         cinema = self.get_cinema_by_id(cinema_id)
         if cinema:
