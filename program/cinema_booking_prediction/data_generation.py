@@ -1,3 +1,18 @@
+"""
+Creates a dataset for cinema booking prediction. The dataset contains the following columns:
+film_popularity: The popularity of the film (1-5).
+cinema_location: The location of the cinema (Birmingham, Bristol, Cardiff, London).
+show_time: The time of the show (1=Morning, 2=Afternoon, 3=Evening).
+date: The date of the show.
+capacity: The total capacity of the cinema.
+seat_type: The type of seat (Lower Class, Upper Class, VIP).
+day_of_week: The day of the week (0=Monday, 1=Tuesday, ..., 6=Sunday).
+month: The month of the date.
+year: The year of the date.
+ticket_price: The price of the ticket.
+tickets_sold: The number of tickets sold.
+The dataset is saved to a CSV file called 'cinema_data_booking_prediction_essential.csv'.
+"""
 import pandas as pd
 import numpy as np
 from faker import Faker
@@ -17,8 +32,6 @@ dates = [fake.date_between(start_date='-2y', end_date='today') for _ in range(nu
 seat_types = ['Lower Class', 'Upper Class', 'VIP']
 
 data = {
-    'film_code': [random.randint(1000, 2000) for _ in range(num_rows)], # generate random film codes between 1000 and 2000. There will be repeating values to represent real-world data.
-    'cinema_code': [random.randint(100, 500) for _ in range(num_rows)], # generate random cinema codes between 100 and 500.
     'film_popularity': film_popularity,
     'cinema_location': cinema_location,
     'show_time': show_time,
@@ -39,7 +52,6 @@ def generate_seat_type(capacity):
 df['seat_type'] = df['capacity'].apply(generate_seat_type) # apply the generate_seat_type function to each row in the dataframe to get the seat type.
 
 df['date'] = pd.to_datetime(df['date']) # convert the date column to a datetime object.
-df['day'] = df['date'].dt.day # get the day from the date column.
 df['day_of_week'] = df['date'].dt.dayofweek # get the day of the week from the date column.
 df['month'] = df['date'].dt.month # get the month from the date column.
 df['year'] = df['date'].dt.year # get the year from the date column.
@@ -95,5 +107,8 @@ df['tickets_sold'] = ( # generate the number of tickets sold based on the follow
 ).astype(int)  # convert the tickets sold to an integer.
 
 df['tickets_sold'] = df['tickets_sold'].apply(lambda x: max(0, x)) # ensure that the tickets sold is at least 0. as noise can result in negative values.
+df['tickets_sold'] = df.apply(lambda row: min(row['tickets_sold'], row['capacity']), axis=1) # ensure that the tickets sold is less than or equal to the capacity of the cinema.
 
-df.to_csv('cinema_data_booking_prediction_essential.csv', index=False) # save the dataframe to a csv file so we can train the model on it.
+df = df.drop(columns=['date']) #remove the date column, as it is not needed for the model.
+
+df.to_csv('program\cinema_booking_prediction\cinema_data_booking_prediction_essential.csv', index=False) # save the dataframe to a csv file so we can train the model on it. index=False means that the row numbers are not saved to the csv file.
