@@ -3,16 +3,15 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from sqlalchemy.orm import Session
-from main_components.models import Cinema, User, Role, Screen, Screening, CinemaFilm
-
+from main_components.models import Cinema, User, Role, Screen, Screening, Film
 
 
 class CinemaService:
     def __init__(self, session: Session):
         self.session = session
 
-    def create_cinema(self, name: str, address: str, city_id: int) -> Cinema:
-        cinema = Cinema(name=name, address=address, city_id=city_id)
+    def create_cinema(self, city_id: int, name: str, address: str) -> Cinema:
+        cinema = Cinema(city_id=city_id, name=name, address=address)
         self.session.add(cinema)
         self.session.commit()
         return cinema
@@ -26,15 +25,15 @@ class CinemaService:
     def get_all_cinemas(self) -> list[Cinema]:
         return self.session.query(Cinema).all()
 
-    def update_cinema(self, cinema_id: int, name: str = None, address: str = None, city_id: int = None) -> Cinema:
+    def update_cinema(self, cinema_id: int, city_id: int = None, name: str = None, address: str = None) -> Cinema:
         cinema = self.get_cinema_by_id(cinema_id)
         if cinema:
+            if city_id:
+                cinema.city_id = city_id
             if name:
                 cinema.name = name
             if address:
                 cinema.address = address
-            if city_id:
-                cinema.city_id = city_id
             self.session.commit()
             return cinema
         return None
@@ -71,16 +70,15 @@ class CinemaService:
     def get_screenings(self, cinema_id: int) -> list['Screening']:
         return self.session.query(Screening).filter_by(cinema_id=cinema_id).all()
 
-    def get_films(self, cinema_id: int) -> list['CinemaFilm']:
-        cinema = self.get_cinema_by_id(cinema_id)
-        if cinema:
-            return cinema.get_films()
-        return []
-    
+    def get_films(self, cinema_id: int) -> list['Film']:
+        films = self.session.query(Film).join(Screening).filter(Screening.cinema_id == cinema_id).distinct().all() # Get distinct films
+        return films
+
     def get_cinemas_by_city(self, city_id: int) -> list[Cinema]:
         """Retrieves cinemas by city."""
         return self.session.query(Cinema).filter_by(city_id=city_id).all()
 
     def get_cinemas_by_film(self, film_id: int) -> list[Cinema]:
         """Retrieves cinemas showing a specific film."""
-        return self.session.query(Cinema).join(CinemaFilm).filter(CinemaFilm.film_id == film_id).all()
+        cinemas = self.session.query(Cinema).join(Screening).filter(Screening.film_id == film_id).distinct().all()
+        return cinemas

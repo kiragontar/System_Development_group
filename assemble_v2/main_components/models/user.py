@@ -22,15 +22,12 @@ class User(Base):
     lastname = Column(String(255), nullable = False) # Last name of the user.
     role_id = Column(Integer, ForeignKey('roles.role_id'), nullable = False) # Foreign key linking to the Role table.
     cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id')) #link to a cinema, if the user works at one.
-    is_password_expired = Column(Boolean, default=False)  # Indicates whether the password has expired.
-    expiration_date = Column(DateTime, default=lambda: datetime.now(timezone.utc) + timedelta(days=90))  # When a new row is created, if no value is provided for expiration_date, it will automatically be set to the current UTC time plus 90 days.
-
 
     # Relationship to the Role table
     role = relationship('Role', back_populates='users') # ensures that changes to one side of the relationship are automatically reflected on the other. For example, if you add a new User and assign them a Role, the User's role attribute and the Role's users attribute will both be updated automatically, keeping the relationship consistent in both directions.
     cinema = relationship('Cinema', back_populates='users')
 
-    def __init__(self, username: str, password_hash: str, salt: str, firstname: str, lastname: str, role_id: int, cinema_id: int = None):
+    def __init__(self, username: str, password_hash: str, salt: str, firstname: str, lastname: str, role_id: int, cinema_id: int):
         """
         Initializes a User instance.
 
@@ -39,7 +36,7 @@ class User(Base):
         firstname (str): First name of the user.
         lastname (str): Last name of the user.
         role_id (int): Role ID associated with the user.
-        cinema_id (int): ID of the cinema the user works at (optional).
+        cinema_id (int): ID of the cinema the user works at
         """
         self.username = username
         self.password_hash = password_hash # Store password hash.
@@ -48,8 +45,6 @@ class User(Base):
         self.lastname = lastname
         self.role_id = role_id
         self.cinema_id = cinema_id
-        self.is_password_expired = False
-        self.expiration_date = datetime.now(timezone.utc) + timedelta(days=90)  # Default expiration is 90 days.
 
     def get_username(self) -> str:
         """
@@ -96,26 +91,10 @@ class User(Base):
         """
         Retrieves the cinema ID where the user works, if applicable.
 
-        return (int): The cinema ID as an integer, or None if not assigned to a cinema.
+        return (int): The cinema ID as an integer.
         """
         return self.cinema_id
 
-    def check_is_password_expired(self) -> bool:
-        """
-        Checks if the user's password is expired based on the expiration date.
-
-        return (bool): True if the password is expired, otherwise False.
-        """
-        return datetime.now(timezone.utc) > self.expiration_date
-    
-    def expire_password(self) -> None:
-        """
-        Marks the user's password as expired.
-
-        This method should be called when the password reaches the expiration date.
-        """
-        self.is_password_expired = True
-    
     def set_username(self, username: str) -> None:
         """
         Updates the username of the user.

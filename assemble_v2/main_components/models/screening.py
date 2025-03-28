@@ -13,51 +13,55 @@ class Screening(Base):
     __tablename__ = 'screenings'
 
     screening_id = Column(Integer, primary_key=True, autoincrement=True)
-    screen_id = Column(String(255), ForeignKey('screens.screen_id'))
     film_id = Column(Integer, ForeignKey('films.film_id'))
+    screen_id = Column(String(255), ForeignKey('screens.screen_id'))
+    cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'))
     date = Column(Date)
     start_time = Column(DateTime)
-    end_time = Column(DateTime)
-    lower_hall_sold = Column(Integer)
-    upper_hall_sold = Column(Integer)
-    vip_sold = Column(Integer)
-    cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'))
+    screening_availability = Column(Integer, nullable=False)
 
     # Relationships
+    cinemas = relationship('Cinema', back_populates='screenings')
     screen = relationship('Screen', back_populates='screenings')
     film = relationship('Film', back_populates='screenings')
-    bookings = relationship('Booking', back_populates='screening')
-    tickets = relationship('Ticket', back_populates='screening')
+    seat_availability = relationship('SeatAvailability', back_populates='screening')
 
-    def __init__(self, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, lower_hall_sold: int, upper_hall_sold: int, vip_sold: int, cinema_id: int):
+    def __init__(self, film_id: str, screen_id: str, cinema_id: int, date: datetime, start_time: datetime, screening_availability: int = 1):
         """
         Initializes a new Screening object with the provided attributes.
         """
-        self.screen_id = screen_id
         self.film_id = film_id
+        self.screen_id = screen_id
+        self.cinema_id = cinema_id
         self.date = date
         self.start_time = start_time
-        self.end_time = end_time
-        self.lower_hall_sold = lower_hall_sold
-        self.upper_hall_sold = upper_hall_sold
-        self.vip_sold = vip_sold
-        self.cinema_id = cinema_id
+        self.screening_availability = screening_availability
+        
+        
 
     @classmethod
-    def create_screening(cls, screen_id: str, film_id: int, date: datetime, start_time: datetime, end_time: datetime, cinema_id: int, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> 'Screening':
+    def create_screening(cls, film_id: str, screen_id: str, cinema_id: int, date: datetime, start_time: datetime, screening_availability: int = 1) -> 'Screening':
         """
         Creates a new Screening object and sets its attributes.
+        
+        Parameters:
+        - film_id (str): The ID of the film to be screened
+        - screen_id (str): The ID of the screen/hall where the film will be shown
+        - cinema_id (int): The ID of the cinema
+        - date (datetime): The date of the screening
+        - start_time (datetime): The start time of the screening
+        - screening_availability (int): Availability status, default is 1 (available)
+        
+        Returns:
+        - Screening: A new Screening object
         """
         screening = cls(
-            screen_id=screen_id,
             film_id=film_id,
+            screen_id=screen_id,
+            cinema_id=cinema_id,
             date=date,
             start_time=start_time,
-            end_time=end_time,
-            lower_hall_sold=lower_hall_sold,
-            upper_hall_sold=upper_hall_sold,
-            vip_sold=vip_sold,
-            cinema_id=cinema_id,
+            screening_availability=screening_availability
         )
         return screening
 
@@ -70,6 +74,15 @@ class Screening(Base):
         """
         return self.screening_id
 
+    def get_film_id(self) -> 'Film':
+        """
+        Retrieves the associated film.
+
+        Returns:
+        - Film: The associated Film object.
+        """
+        return self.film
+
     def get_screen_id(self) -> 'Screen':
         """
         Retrieves the associated screen.
@@ -79,14 +92,6 @@ class Screening(Base):
         """
         return self.screen
     
-    def get_film_id(self) -> 'Film':
-        """
-        Retrieves the associated film.
-
-        Returns:
-        - Film: The associated Film object.
-        """
-        return self.film
     
     def get_date(self) -> datetime:
         """
@@ -106,50 +111,14 @@ class Screening(Base):
         """
         return self.start_time
     
-    def get_end_time(self) -> datetime:
+    def geet_screening_availability(self) -> int:
         """
-        Retrieves the screening end time.
-
+        Retrieves the screening availability status.
+        
         Returns:
-        - datetime: The end time of the screening.
+        - int: The availability status of the screening.
         """
-        return self.end_time
-    
-    def get_lower_hall_sold(self) -> int:
-        """
-        Retrieves the number of lower hall tickets sold.
-
-        Returns:
-        - int: The number of lower hall tickets sold.
-        """
-        return self.lower_hall_sold
-
-    def get_upper_hall_sold(self) -> int:
-        """
-        Retrieves the number of upper hall tickets sold.
-
-        Returns:
-        - int: The number of upper hall tickets sold.
-        """
-        return self.upper_hall_sold
-
-    def get_vip_sold(self) -> int:
-        """
-        Retrieves the number of VIP tickets sold.
-
-        Returns:
-        - int: The number of VIP tickets sold.
-        """
-        return self.vip_sold
-    
-    def set_screen_id(self, screen_id: 'Screen') -> None:
-        """
-        Sets the screen ID for the screening.
-
-        Parameters:
-        - screen_id (Screen): The associated screen.
-        """
-        self.screen_id = screen_id.screen_id
+        return self.screening_availability
     
     def set_film_id(self, film_id: 'Film') -> None:
         """
@@ -159,6 +128,15 @@ class Screening(Base):
         - film_id (Film): The associated film.
         """
         self.film_id = film_id.film_id
+
+    def set_screen_id(self, screen_id: 'Screen') -> None:
+        """
+        Sets the screen ID for the screening.
+
+        Parameters:
+        - screen_id (Screen): The associated screen.
+        """
+        self.screen_id = screen_id.screen_id
     
     def set_date(self, date: datetime) -> None:
         """
@@ -178,38 +156,11 @@ class Screening(Base):
         """
         self.start_time = start_time
 
-    def set_end_time(self, end_time: datetime) -> None:
+    def set_screening_availability(self, screening_availability: int) -> None:
         """
-        Sets the end time of the screening.
+        Sets the availability status of the screening.
 
         Parameters:
-        - end_time (datetime): The end time of the screening.
+        - screening_availability (int): The availability status of the screening.
         """
-        self.end_time = end_time
-
-    def set_lower_hall_sold(self, lower_hall_sold: int) -> None:
-        """
-        Sets the number of lower hall tickets sold.
-
-        Parameters:
-        - lower_hall_sold (int): The number of lower hall tickets sold.
-        """
-        self.lower_hall_sold = lower_hall_sold
-
-    def set_upper_hall_sold(self, upper_hall_sold: int) -> None:
-        """
-        Sets the number of upper hall tickets sold.
-
-        Parameters:
-        - upper_hall_sold (int): The number of upper hall tickets sold.
-        """
-        self.upper_hall_sold = upper_hall_sold
-
-    def set_vip_sold(self, vip_sold: int) -> None:
-        """
-        Sets the number of VIP tickets sold.
-
-        Parameters:
-        - vip_sold (int): The number of VIP tickets sold.
-        """
-        self.vip_sold = vip_sold
+        self.screening_availability = screening_availability

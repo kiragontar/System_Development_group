@@ -3,12 +3,10 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from sqlalchemy.orm import Session
-from main_components.models import Booking, Screening, Ticket, Seat, Screen, Cinema, City
+from main_components.models import Booking, Screening, Ticket, Seat, Screen, Cinema, City, SeatAvailability
 from main_components.enums import PaymentStatus
 import uuid
 from datetime import datetime, timedelta
-from main_components.services.seat_service import SeatService
-from main_components.services.pricing_service import PricingService
 from main_components.services.ticket_service import TicketService
 import logging 
 
@@ -20,74 +18,67 @@ class BookingNotFoundError(Exception):
 class BookingTimeoutError(Exception):
     pass
 
-class InvalidScreeningError(Exception):
-    pass
-
-class NoSeatsSelectedError(Exception):
-    pass
 
 class BookingService:
-    def __init__(self, session: Session, seat_service: SeatService, ticket_service: TicketService, pricing_service: PricingService):
+    def __init__(self, session: Session, ticket_service: TicketService):
         self.session = session
-        self.seat_service = seat_service
-        self.pricing_service = pricing_service
         self.ticket_service = ticket_service
 
-    def create_booking(self, screening_id: int, price: float, seats: list, customer_name:str, customer_email:str = None, customer_phone:str = None) -> Booking:
+    def create_booking(self, seat_id : str, customer_name:str, customer_email:str = None, customer_phone:str = None, screening_id : int = None) -> Booking:
         """Creates a new booking."""
-        screening = self.session.query(Screening).filter_by(screening_id=screening_id).first()
-        if not screening:
-            raise InvalidScreeningError("Screening not found")
-        if not seats:
-            raise NoSeatsSelectedError("No seats selected")
+        try:
+            # Check if seat is available
+            seat_availability = self.session.query(SeatAvailability).filter_by(seat_id=seat_id, screening_id=screening_id).first()
+            if not seat_availability or seat_availability.seat_availability == 0:
+                    raise ValueError(f"Seat with ID {seat_id} is not available for screening {screening_id}.")
 
-        booking_id = str(uuid.uuid4())
-        total_price = 0.0
-        booking = Booking(screening_id=screening_id, price=price, seats=seats, customer_name=customer_name, customer_email=customer_email, customer_phone=customer_phone)
-        booking.booking_id = booking_id
-        booking.seats = seats
-        self.session.add(booking)
-        self.session.flush()
+            # Bookings can only be booked up to one week in advance of a screening.
+            # Validate screening date.
+            screening = self.session.query(Screening).filter_by(screening_id=screening_id).first()
+            if not screening:
+                raise ValueError(f"Screening with ID {screening_id} not found.")
+            one_week_ahead = datetime.now().date() + timedelta(days=7) # Get date one week ahead.
+            if screening.date > one_week_ahead: # Meaning screening date is more than one week ahead.
+                raise ValueError("Bookings can only be made up to one week in advance.")
+            booking_id = str(uuid.uuid4())
+            booking = Booking(booking_id=booking_id, seat_id=seat_id, customer_name=customer_name, customer_email=customer_email, customer_phone=customer_phone)
+            self.session.add(booking)
+            self.session.commit()
+            if booking:
+                # If booking happened, need to update seat availability.
+                seat_availability.seat_availability = 0
+                self.session.commit()
 
-        screen = self.session.query(Screen).filter_by(screen_id=screening.screen_id, cinema_id=screening.cinema_id).first()
-        cinema = self.session.query(Cinema).filter_by(cinema_id=screen.cinema_id).first()
-        city_obj = self.session.query(City).filter_by(city_id= cinema.city_id).first()
-        if city_obj:
-            city = city_obj.name
-        else:
-            city = "DefaultCity"
-        for seat in seats:
-            # Determine time of day from screening start time
-            start_hour = screening.start_time.hour
-            if 8 <= start_hour < 12:
-                time_of_day = "Morning"
-            elif 12 <= start_hour < 17:
-                time_of_day = "Afternoon"
-            else:
-                time_of_day = "Evening"
+            # Get cinema from seatid.
+            seat = self.session.query(Seat).filter_by(seat_id=seat_id).first()
+            if seat:
+                seat_type = seat.seat_type
+                cinema_id = seat.cinema_id
+                cinema = self.session.query(Cinema).filter_by(cinema_id=cinema_id).first()
+                if cinema:
+                    city = self.session.query(City).filter_by(city_id=cinema.city_id).first()
+                    if city:
+                        if datetime.now().hour < 12:
+                            ticket_price = city.price_morning
+                        elif datetime.now().hour < 18:
+                            ticket_price = city.price_afternoon
+                        else:
+                            ticket_price = city.price_evening
+            if seat_type == 'Upper':
+                ticket_price = ticket_price * 1.2
+            elif seat_type == 'VIP':
+                ticket_price = (ticket_price * 1.2) * 1.2
+            # Create ticket for booking.
+            ticket = Ticket(booking_id=booking_id, seat_id=seat_id, ticket_price=ticket_price, issue_date=datetime.now(), payment_status= PaymentStatus.PAID)
+            self.session.add(ticket)
+            self.session.commit()
 
-            # Get price from PricingService
-            try: 
-                ticket_price = self.pricing_service.get_price(city, seat.seat_class, time_of_day)
-                total_price += ticket_price
-            except ValueError as e:
-                print(f"Error getting price : {e}")
-                total_price = -1
-                break
-
-            ticket = self.ticket_service.create_ticket(
-                booking_id=booking_id,
-                seat_id=seat.seat_id,
-                screening_id=screening_id,
-                original_ticket_price= ticket_price
-            )
-        if total_price == -1:
+        except Exception as e:
             self.session.rollback()
-            raise ValueError("Could not get price for one or more seats.")
-
-        booking.price = total_price
-        self.session.commit()
-        return booking
+            logging.error(f"Failed to create booking: {e}")
+            print(f"Unexpected error occured : {e}")
+            return None
+        
 
     def get_all_bookings(self) -> list[Booking]:
         """Retrieves all bookings."""
@@ -100,88 +91,79 @@ class BookingService:
         if not booking:
             raise BookingNotFoundError(f"Booking with ID {booking_id} not found.")
         return booking
+    
+    def get_bookings_by_customer(self, customer_name: str) -> list[Booking]:
+        """Retrieves all bookings for a customer."""
+        bookings = self.session.query(Booking).filter_by(customer_name=customer_name).all()
+        return bookings
+    
+    def get_bookings_by_screening(self, screening_id: int) -> list[Booking]:
+        """Retrieves all bookings for a screening."""
+        bookings = self.session.query(Booking).join(SeatAvailability).filter(SeatAvailability.screening_id == screening_id).all()
+        return bookings
+
+    def update_booking(self, booking_id: str, customer_name: str = None, customer_email: str = None, customer_phone: str = None) -> Booking:
+        """Updates a booking's details."""
+        try:
+            booking = self.session.query(Booking).filter_by(booking_id=booking_id).first()
+            if not booking:
+                raise BookingNotFoundError(f"Booking with ID {booking_id} not found.")
+            if customer_name:
+                booking.customer_name = customer_name
+            if customer_email:
+                booking.customer_email = customer_email
+            if customer_phone:
+                booking.customer_phone = customer_phone
+            self.session.commit()
+        except Exception as e:
+            self.session.rollback()
+            logging.error(f"Failed to update booking {booking_id}: {e}")
+        return booking
 
     def cancel_booking(self, booking_id: str) -> bool:
         """Cancels a booking by its ID."""
-        booking = self.session.query(Booking).filter_by(booking_id=booking_id).first()
+        bookings = self.session.query(Booking).filter_by(booking_id=booking_id).all()
         if not booking:
             raise BookingNotFoundError(f"Booking with ID {booking_id} not found.")
         try:
-            if booking.payment_status == PaymentStatus.PAID:
-                booking.payment_status = PaymentStatus.REFUNDED
-                tickets = self.ticket_service.get_tickets_by_booking(booking_id=booking_id) #Collect all tickets from booking to update seat availability.
-                if tickets:
-                    screening = self.session.query(Screening).filter_by(screening_id = booking.screening_id).first() # Get screening for booking.
-                    if screening:
-                        upper_seats_count = sum(1 for seat in booking.seats if seat.seat_class == 'Upper')
-                        lower_seats_count = sum(1 for seat in booking.seats if seat.seat_class == 'Lower')
-                        vip_seats_count = sum(1 for seat in booking.seats if seat.seat_class == 'VIP')
-
-                        screening.upper_hall_sold -= upper_seats_count
-                        screening.lower_hall_sold -= lower_seats_count
-                        screening.vip_sold -= vip_seats_count
-
-                        for ticket in tickets:
-                            self.seat_service.update_seat_availability(ticket.seat_id, True)
-                        self.session.add(screening)
-                self.session.commit()
-                logging.info(f"Booking {booking_id} cancelled.")
-                return True
-            else: # Booking has not been paid:
-                booking.payment_status = PaymentStatus.Failed
-                self.session.commit()
-                logging.info(f"Booking {booking_id} cancelled. Payment failed.")
-                return True
+            # Get seat_id from the first booking
+            seat_id = bookings[0].seat_id
+            # Get screening id from seat id and booking id from seat_availability table.
+            seat_availability = self.session.query(SeatAvailability).filter_by(booking_id=booking_id, seat_id=seat_id).first()
+            if not seat_availability:
+                logging.error(f"SeatAvailability not found for booking {booking_id} and seat {seat_id}")
+                return False
+            screening_id = seat_availability.screening_id
+            # Get screening from screening id
+            screening = self.session.query(Screening).filter_by(screening_id=screening_id).first()
+            if screening:
+                # collect date and start time of screening:
+                date = screening.date
+                start_time = screening.start_time
+                # collect date and time currently
+                current_date = datetime.now().date()
+                current_time = datetime.now().time()
+                # Current date and time should be less than screening date and time to cancel booking.
+                if current_date < date or (current_date == date and current_time < start_time):
+                    # Get all tickets for this booking once.
+                    tickets = self.ticket_service.get_tickets_by_booking(booking_id=booking_id)
+                    # Get ticket ids from tickets
+                    ticket_ids = [ticket.ticket_id for ticket in tickets]
+                    # Update payment status of tickets to refunded
+                    self.ticket_service.update_payment_status(ticket_ids, PaymentStatus.REFUNDED)
+                    for booking in bookings:
+                        # Delete booking
+                        self.session.delete(booking)
+                    self.session.commit()
+                    logging.info(f"Booking {booking_id} cancelled successfully.")
+                    return True
+                else:
+                    logging.warning(f"Booking {booking_id} cannot be cancelled as the screening has already started.")
+                    return False
         except Exception as e:
             self.session.rollback()
             logging.error(f"Failed to cancel booking {booking_id}: {e}")
             return False
 
         
-    def place_booking(self, booking_id: str, timeout_minutes: int = 30) -> bool:
-        """Checks timeout, places booking, updates seat availability, and generates tickets."""
-        booking = self.session.query(Booking).filter_by(booking_id=booking_id).first()
-        if not booking:
-            raise BookingNotFoundError(f"Booking with ID {booking_id} not found.")
-        try:
-            if booking.payment_status == PaymentStatus.PENDING:
-                if (datetime.now() - booking.booking_time) < timedelta(minutes=timeout_minutes): # Booking is within timeout.
-                    booking.payment_status = PaymentStatus.PAID
-                    tickets = self.ticket_service.get_tickets_by_booking(booking_id=booking_id) # Get all tickets for this booking
-                    if tickets:
-                        screening = self.session.query(Screening).filter_by(screening_id=booking.screening_id).first() 
-                        if screening:
-                            self.session.refresh(screening)
-                            for ticket in tickets:
-                                seat = self.session.query(Seat).filter_by(seat_id=ticket.seat_id).first()
-                                if seat:
-                                    if seat.seat_class == 'Lower':
-                                        screening.lower_hall_sold += 1
-                                    elif seat.seat_class == 'Upper':
-                                        screening.upper_hall_sold += 1
-                                    elif seat.seat_class == 'VIP':
-                                        screening.vip_sold += 1
-                                    self.seat_service.update_seat_availability(ticket.seat_id, False)
-                            self.session.add(screening)
-                    self.session.flush() # Added flush
-                    self.session.refresh(screening) # Added refresh
-                    self.session.commit()
-                    logging.info(f"Booking {booking_id} placed successfully.")
-                    return True  # Still pending, within timeout
-                else:
-                    logging.info(f"Booking {booking_id} timed out and was marked as FAILED.")
-                    booking.payment_status = PaymentStatus.FAILED # Change to failed instead of cancel
-                    self.session.commit()
-                    raise BookingTimeoutError(f"Booking {booking_id} timed out.")
-            elif booking.payment_status == PaymentStatus.PAID:
-                logging.info(f"Booking {booking_id} is already paid.")
-                return True
-            elif booking.payment_status == PaymentStatus.FAILED:
-                logging.warning(f"Booking {booking_id} payment has failed.")
-                return False
-            else:
-                logging.warning(f"Booking {booking_id} is refunded or in an invalid state.")
-                return False
-        except Exception as e:
-            self.session.rollback()
-            logging.error(f"Failed to place booking {booking_id}: {e}")
+    

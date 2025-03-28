@@ -3,7 +3,7 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from sqlalchemy.orm import Session
-from main_components.models import Screening, Screen
+from main_components.models import Screening, Screen, SeatAvailability, Film
 from typing import List, Optional
 from datetime import datetime
 
@@ -16,9 +16,9 @@ class ScreeningService:
         """Initializes the ScreeningService with a session."""
         self.session = session
 
-    def create_screening(self, screen_id: str, film_id: str, date: datetime, start_time: datetime, end_time: datetime, cinema_id: int, lower_hall_sold: int = 0, upper_hall_sold: int = 0, vip_sold: int = 0) -> Screening:
+    def create_screening(self, film_id : int, screen_id : str, cinema_id : int, date : datetime, start_time : datetime, screening_availability : int) -> Screening:
         """Creates a new screening."""
-        screening = Screening.create_screening(screen_id, film_id, date, start_time, end_time, cinema_id, lower_hall_sold, upper_hall_sold, vip_sold)
+        screening = Screening.create_screening(film_id, screen_id, cinema_id, date, start_time, screening_availability)
         self.session.add(screening)
         self.session.commit()
         return screening
@@ -27,37 +27,71 @@ class ScreeningService:
         """Retrieves a screening by ID."""
         return self.session.query(Screening).filter_by(screening_id=screening_id).first()
 
+    def get_screening_for_screen(self, screen_id: str, cinema_id : int) -> Optional[Screening]:
+        """Retrieves a screening by screen ID."""
+        return self.session.query(Screening).filter_by(screen_id=screen_id, cinema_id=cinema_id).first()
+    
+    def get_all_screenings_for_cinema(self, cinema_id : int) -> List[Screening]:
+        """Retrieves all screenings for a given cinema."""
+        return self.session.query(Screening).filter_by(cinema_id=cinema_id).all()
+    
     def get_all_screenings(self) -> List[Screening]:
         """Retrieves all screenings."""
         return self.session.query(Screening).all()
+    
+    def add_film_to_screening(self, screening_id: int, film_id: int) -> Screening:
+        """Adds a film to a screening."""
+        try:
+            screening = self.session.query(Screening).filter_by(screening_id=screening_id).first()
+            if not screening:
+                raise ValueError(f"Screening with ID {screening_id} not found.")
 
-    def update_screening(self, screening_id: str, screen_id: str = None, film_id: str = None, date: datetime = None, start_time: datetime = None, end_time: datetime = None, cinema_id: int = None, lower_hall_sold: int = None, upper_hall_sold: int = None, vip_sold: int = None) -> Optional[Screening]:
+            film = self.session.query(Film).filter_by(film_id=film_id).first()
+            if not film:
+                raise ValueError(f"Film with ID {film_id} not found.")
+            
+            screening.film_id = film_id # Connect film to screening
+            self.session.commit()
+            return screening
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Failed to add film {film_id} to screening {screening_id}: {e}")
+
+    def remove_film_from_screening(self, screening_id: int) -> Screening:
+        """Removes the film from a screening."""
+        try:
+            screening = self.session.query(Screening).filter_by(screening_id=screening_id).first()
+            if not screening:
+                raise ValueError(f"Screening with ID {screening_id} not found.")
+            
+            screening.film_id = None # Disconnect film from screening
+            self.session.commit()
+            return screening
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Failed to remove film from screening {screening_id}: {e}")
+
+    def update_screening(self, screening_id: int, film_id: int = None, screen_id: str = None, cinema_id : int = None,  date: datetime = None, start_time: datetime = None, screening_availability : int = None) -> Optional[Screening]:
         """Updates a screening's details."""
         screening = self.get_screening_by_id(screening_id)
         if screening:
-            if screen_id:
-                screening.set_screen_id(screen_id)
             if film_id:
                 screening.set_film_id(film_id)
+            if screen_id:
+                screening.set_screen_id(screen_id)
+            if cinema_id:
+                screening.cinema_id = cinema_id
             if date:
                 screening.set_date(date)
             if start_time:
                 screening.set_start_time(start_time)
-            if end_time:
-                screening.set_end_time(end_time)
-            if cinema_id:
-                screening.cinema_id = cinema_id
-            if lower_hall_sold is not None:
-                screening.set_lower_hall_sold(lower_hall_sold)
-            if upper_hall_sold is not None:
-                screening.set_upper_hall_sold(upper_hall_sold)
-            if vip_sold is not None:
-                screening.set_vip_sold(vip_sold)
+            if screening_availability:
+                screening.set_screening_availability(screening_availability)
             self.session.commit()
             return screening
         return None
 
-    def delete_screening(self, screening_id: str) -> bool:
+    def delete_screening(self, screening_id: int) -> bool:
         """Deletes a screening."""
         screening = self.get_screening_by_id(screening_id)
         if screening:
@@ -66,17 +100,4 @@ class ScreeningService:
             return True
         return False
     
-    def get_screenings_for_screen(self, screen_id: str) -> List[Screening]:
-        """Retrieves all screenings for a given screen."""
-        return self.session.query(Screening).filter_by(screen_id=screen_id).all()
 
-    def get_screen_for_screening(self, screening_id: str) -> Optional[Screen]:
-        """Retrieves the screen for a given screening."""
-        screening = self.get_screening_by_id(screening_id)
-        if screening:
-            return self.session.query(Screen).filter_by(screen_id=screening.screen_id).first()
-        return None
-    
-    def get_screenings_for_cinema(self, cinema_id: int) -> List[Screening]:
-        """Retrieves all screenings for a given cinema."""
-        return self.session.query(Screening).filter_by(cinema_id=cinema_id).all()

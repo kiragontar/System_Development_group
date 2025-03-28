@@ -10,18 +10,18 @@ class Cinema(Base):
     """
     __tablename__ = "cinemas" # This matches the table name.
 
-    cinema_id = Column(Integer, primary_key = True, autoincrement=True) # Makes a column of id, making it a primary key and type integer.
     city_id = Column(Integer, ForeignKey('cities.city_id'), nullable = False) # City ID references the City table.
+    cinema_id = Column(Integer, primary_key = True, autoincrement=True) # Makes a column of id, making it a primary key and type integer.
     name = Column(String(255), nullable = False, unique=True) # name shouldnt be nullable, so its mandatory.
     address = Column(String(255), nullable = False)
 
     city = relationship('City', back_populates='cinemas')  # One cinema belongs to one city
-    cinema_films = relationship('CinemaFilm', back_populates='cinema')  # Films related to this cinema
     screens = relationship('Screen', back_populates='cinema')  # Screens in this cinema
     seats = relationship('Seat', back_populates='cinema')
     users = relationship('User', back_populates='cinema')
+    screenings = relationship('Screening', back_populates='cinema')
 
-    def __init__(self, name: str, address: str, city_id: int):
+    def __init__(self, city_id: int, name: str, address: str):
         """
         Initialize the Cinema object.
         
@@ -30,9 +30,10 @@ class Cinema(Base):
         - address (str): The address of the cinema.
         - city_id (int): The city ID where the cinema is located.
         """
+        self.city_id = city_id
         self.name = name
         self.address = address
-        self.city_id = city_id
+
     
     def get_id(self) -> int:
         """Returns the unique identifier of the cinema."""
@@ -53,9 +54,6 @@ class Cinema(Base):
     def set_address(self, address: str) -> None:
         """Sets the address of the cinema."""
         self.address = address
-
-    def get_films(self):
-        return [cinema_film.film for cinema_film in self.cinema_films]
 
     def __repr__(self):
         return f"<Cinema(cinema_id={self.cinema_id}, name='{self.name}', address='{self.address}')>"

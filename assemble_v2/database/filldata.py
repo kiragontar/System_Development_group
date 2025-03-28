@@ -365,7 +365,7 @@ def fill_seat():
     finally:
         session.close()
 
-#fill_seat()
+fill_seat()
 
 def fill_permission():
     session = SessionLocal()
@@ -572,7 +572,7 @@ def fill_booking():
     finally:
         session.close()
 
-#fill_booking()
+fill_booking()
 
 def fill_payment():
     session = SessionLocal()

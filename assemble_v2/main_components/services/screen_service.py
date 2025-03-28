@@ -18,9 +18,9 @@ class ScreenService:
         self.session = session
 
 
-    def create_screen(self, screen_id: str, cinema_id: int, capacity_upper: int = 0, capacity_lower: int = 0, capacity_vip: int = 0) -> Screen:
+    def create_screen(self, screen_id: str, cinema_id: int, total_capacity : int, row_number : int) -> Screen:
         """Creates a new screen."""
-        screen = Screen.create_screen(screen_id, cinema_id, capacity_upper, capacity_lower, capacity_vip)
+        screen = Screen.create_screen(screen_id, cinema_id, total_capacity, row_number)
         self.session.add(screen)
         self.session.commit()
         return screen
@@ -36,33 +36,32 @@ class ScreenService:
     def get_screens(self, cinema_id: int) -> List[Screen]:
         """Retrieves all screens for a given cinema."""
         return self.session.query(Screen).filter_by(cinema_id=cinema_id).all()
+    
+    def get_screen_for_screening(self, screening_id: str) -> Optional[Screen]:
+        """Retrieves the screen for a given screening."""
+        screening = self.get_screening_by_id(screening_id)
+        if screening:
+            return self.session.query(Screen).filter_by(screen_id=screening.screen_id).first()
+        return None
+    
 
-    def update_screen_capacities(self, screen_id: str, capacity_upper: int = None, capacity_lower: int = None, capacity_vip: int = None) -> Optional[Screen]:
+    def update_screen_capacities(self, screen_id: str, cinema_id : int, total_capacity : int = None, row_number : int = None) -> Optional[Screen]:
         """Updates the seating capacities of a screen."""
-        screen = self.get_screen_by_id(screen_id)
+        screen = self.session.query(Screen).filter_by(screen_id=screen_id, cinema_id=cinema_id).first()
         if screen:
-            if capacity_upper is not None:
-                screen.set_capacity_upper(capacity_upper)
-            if capacity_lower is not None:
-                screen.set_capacity_lower(capacity_lower)
-            if capacity_vip is not None:
-                screen.set_capacity_vip(capacity_vip)
+            if total_capacity is not None:
+                screen.total_capacity = total_capacity
+            if row_number is not None:
+                screen.row_number = row_number
             self.session.commit()
             return screen
         return None
 
-    def delete_screen(self, screen_id: str) -> bool:
+    def delete_screen(self, screen_id: str, cinema_id : int) -> bool:
         """Deletes a screen."""
-        screen = self.get_screen_by_id(screen_id)
+        screen = self.session.query(Screen).filter_by(screen_id=screen_id, cinema_id=cinema_id).first()
         if screen:
-            screen.delete(self.session)
+            self.session.delete(screen)
+            self.session.commit()
             return True
-        return False
-
-    def check_screen_in_use(self, screen_id: str, start_time: datetime, end_time: datetime, screening_service) -> bool: 
-        """Checks if a screen is in use during a given time range."""
-        screenings = screening_service.get_screenings_for_screen(screen_id)
-        for screening in screenings:
-            if screening.start_time is not None and screening.end_time is not None and screening.start_time < end_time and screening.end_time > start_time:
-                return True
         return False

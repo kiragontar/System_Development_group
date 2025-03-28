@@ -20,6 +20,17 @@ class Permission(Base):
     def get_id(self) -> int:
         """Retrieves the permission ID."""
         return self.permission_id
+    
+    def get_name(self) -> str:
+        """Retrieves the name of the permission."""
+        return self.name
+    
+    def set_name(self, name: str) -> None:
+        """Updates the name of the permission."""
+        if name:
+            self.name = name
+        else:
+            raise ValueError("Name cannot be empty.")
 
     def __repr__(self):
         """Returns a string representation of the Permission instance."""

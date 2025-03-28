@@ -24,7 +24,6 @@ class Film(Base):
 
     # Relationship with screenings (one film can have multiple screenings)
     screenings = relationship('Screening', back_populates='film')
-    cinema_films = relationship('CinemaFilm', back_populates='film')
 
     def __init__(self, name: str, genre: List[str], cast: List[str], 
                  description: str, age_rating: str, critic_rating: float, 

@@ -3,16 +3,17 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from sqlalchemy.orm import Session
-from main_components.models import Cinema, Film, CinemaFilm
+from main_components.models import Cinema, Film
 from typing import List, Optional
 from datetime import datetime
+import logging 
 
-class CinemaFilmService:
+logging.basicConfig(level=logging.INFO)
+
+class FilmService:
     """Manages film-related operations for a specific cinema."""
 
-    def __init__(self, cinema: Cinema, session: Session):
-        """Initializes the CinemaFilmService for a specific cinema."""
-        self.cinema = cinema
+    def __init__(self, session: Session):
         self.session = session
 
     def get_film_by_name(self, film_name: str) -> Film:
@@ -23,19 +24,32 @@ class CinemaFilmService:
         return film
 
     def get_all_films(self) -> List[Film]:
-        """Retrieves all films showing at the cinema."""
-        return self.cinema.get_films()
+        try:
+            films = self.session.query(Film).all()
+            return films
+        except Exception as e:
+            logging.error(f"Failed to retrieve all films: {e}")
+            return []  # Return an empty list on error
 
     def get_all_films_by_genre(self, genre: str) -> List[Film]:
-        """Retrieves all films of a specific genre showing at the cinema."""
-        return [film for film in self.cinema.get_films() if genre in film.get_genre()]
+        """Retrieves all films of a specific genre from the database."""
+        try:
+            films = self.session.query(Film).filter(Film.genre.like(f"%{genre}%")).all()
+            return films
+        except Exception as e:
+            logging.error(f"Failed to retrieve films of genre {genre}: {e}")
+            return []  # Return an empty list on error
     
-    def get_all_films_by_id(self, film_id: str) -> Optional[Film]:
-        """Retrieves a film by ID if it's showing at the cinema."""
-        for film in self.cinema.get_films():
-            if film.film_id == film_id:
-                return film
-        return None
+    def get_film_by_id(self, film_id: str) -> Optional[Film]:
+        """Retrieves a film by its ID."""
+        try:
+            film = self.session.query(Film).filter_by(film_id=film_id).first()
+            return film
+        except Exception as e:
+            logging.error(f"Failed to retrieve film with ID {film_id}: {e}")
+            return None  # Return None on error
+        
+        
     # Add method to create film.
     def create_film(self, name: str, genre: List[str], cast: List[str], 
                  description: str, age_rating: str, critic_rating: float, 

@@ -12,21 +12,13 @@ role_permission_association = Table(
     Column('permission_id', Integer, ForeignKey('permissions.permission_id'))
 )
 
-booking_seat_association = Table(
-    'booking_seat', # Name
-    Base.metadata,
-    Column('booking_id', String(255), ForeignKey('bookings.booking_id'), primary_key=True),
-    Column('seat_id', Integer, ForeignKey('seats.seat_id'), primary_key=True) # Composite primary keys.
-)
+
 
 
 from .booking import Booking
-from .cinema_film import CinemaFilm
 from .cinema import Cinema
-from .city_pricing import CityPricing
 from .city import City
 from .film import Film
-from .payment import Payment
 from .permissions import Permission
 from .role import Role
 from .screen import Screen
@@ -34,6 +26,7 @@ from .screening import Screening
 from .seat import Seat
 from .ticket import Ticket
 from .user import User
+from .seat_availability import SeatAvailability
 
 # How "from .user import User" works? : a file "user.py" is a module named "user", a package is a folder that contains these modules and it becomes a package when an __init__.py is made.
 

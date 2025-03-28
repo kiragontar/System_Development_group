@@ -16,9 +16,9 @@ class CityService:
         """Initializes the CityService with a session."""
         self.session = session
 
-    def create_city(self, name: str, country: str) -> City:
+    def create_city(self, name: str, country: str, price_morning : int, price_afternoon : int, price_evening : int) -> City:
         """Creates a new city."""
-        city = City(name=name, country=country)
+        city = City(name=name, country=country, price_morning = price_morning, price_afternoon = price_afternoon, price_evening = price_evening)
         self.session.add(city)
         self.session.commit()
         return city
@@ -35,7 +35,7 @@ class CityService:
         """Retrieves all cities."""
         return self.session.query(City).all()
 
-    def update_city(self, city_id: int, name: str = None, country: str = None) -> Optional[City]:
+    def update_city(self, city_id: int, name: str = None, country: str = None, price_morning : str = None, price_afternoon : str = None, price_evening : str = None) -> Optional[City]:
         """Updates a city's name and/or country."""
         city = self.get_city_by_id(city_id)
         if city:
@@ -43,6 +43,12 @@ class CityService:
                 city.name = name
             if country:
                 city.country = country
+            if price_morning:
+                city.price_morning = price_morning
+            if price_afternoon:
+                city.price_afternoon = price_afternoon
+            if price_evening:
+                city.price_evening = price_evening
             self.session.commit()
             return city
         return None
