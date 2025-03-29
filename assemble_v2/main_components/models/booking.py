@@ -1,32 +1,30 @@
-from sqlalchemy import Column, String, Float, ForeignKey, DateTime, Integer
+from sqlalchemy import Column, String, ForeignKey,PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
-from .import Base, booking_seat_association
-from .screening import Screening
-from .seat import Seat
-from main_components.enums import PaymentStatus
-from typing import List
-from datetime import datetime
-from sqlalchemy.types import Enum
-import uuid
+from .import Base
+
 
 class Booking(Base):
     """Represents a ticket booking for a specific screening."""
 
     __tablename__ = 'bookings'
 
-    booking_id = Column(String(225), unique=True, primary_key=True)
+    booking_id = Column(String(225), nullable=False)
     seat_id = Column(String(255), ForeignKey('seats.seat_id'), nullable=False)
     customer_name = Column(String(255), nullable=False)
     customer_email = Column(String(255), nullable=True)
     customer_phone = Column(String(255), nullable=True)
 
     # Relationship to Screening
-    seats = relationship('Seat', back_populates='bookings')
+    seat = relationship('Seat', back_populates='bookings')
     seat_availability = relationship('SeatAvailability', back_populates='booking')
     tickets = relationship('Ticket', back_populates='booking')
 
-    def __init__(self, seat_id : str, customer_name:str, customer_email:str = None, customer_phone:str = None):
-        self.booking_id = str(uuid.uuid4()) # Generate UUID here
+    __table_args__ = (
+        PrimaryKeyConstraint('booking_id', 'seat_id'), #Composite primary key.
+    )
+
+    def __init__(self, booking_id: str, seat_id : str, customer_name:str, customer_email:str = None, customer_phone:str = None):
+        self.booking_id = booking_id
         self.seat_id = seat_id
         self.customer_name = customer_name
         self.customer_email = customer_email

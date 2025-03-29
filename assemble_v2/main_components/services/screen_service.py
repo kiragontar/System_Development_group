@@ -3,9 +3,8 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from sqlalchemy.orm import Session
-from main_components.models import Screen, Screening
+from main_components.models import Screen
 from typing import List, Optional
-from datetime import datetime
 
 
 class ScreenService:

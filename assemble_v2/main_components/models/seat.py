@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, ForeignKey, String, Boolean
 from sqlalchemy.orm import relationship
-from . import Base, booking_seat_association
+from . import Base
 
 
 
@@ -14,10 +14,10 @@ class Seat(Base):
     seat_type = Column(String(255), nullable=False)
 
 
-    bookings = relationship('Booking', back_populates='seats')
+    bookings = relationship('Booking', back_populates='seat')
     tickets = relationship('Ticket', back_populates='seat')
     cinema = relationship('Cinema', back_populates='seats')
-    seat_availability = relationship('seat_availability', back_populates='seats')
+    seat_availability = relationship('SeatAvailability', back_populates='seat')
 
     _seat_counters = {}  # Class-level dictionary to store counters
 
@@ -33,7 +33,7 @@ class Seat(Base):
         else:
             Seat._seat_counters[key] += 1
 
-        self.seat_id = f"{screen_id}_C{cinema_id}_{Seat._seat_counters[key] - 1}"
+        self.seat_id = f"{screen_id}_C{cinema_id}_{Seat._seat_counters[key]}"
 
     def get_seat_id(self) -> str:
         return self.seat_id

@@ -21,7 +21,7 @@ class Screening(Base):
     screening_availability = Column(Integer, nullable=False)
 
     # Relationships
-    cinemas = relationship('Cinema', back_populates='screenings')
+    cinema = relationship('Cinema', back_populates='screenings')
     screen = relationship('Screen', back_populates='screenings')
     film = relationship('Film', back_populates='screenings')
     seat_availability = relationship('SeatAvailability', back_populates='screening')

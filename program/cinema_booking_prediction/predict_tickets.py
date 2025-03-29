@@ -23,10 +23,11 @@ def predict_tickets(input_data):
         trained_reduced_features = joblib.load('program/cinema_booking_prediction/trained_reduced_features.joblib') # Load trained reduced feature names
 
         # 2. Preprocess the input data
-        df = input_data.copy()
+        # Load the data
+        df = input_data.copy() # Make a copy of the input data to avoid modifying the original data
         print("\nInitial df:\n", df)
 
-        # Input Range Validation (as before)
+        # Input Range Validation
         if not (1 <= df['film_popularity'][0] <= 5):
             raise ValueError("film_popularity must be between 1 and 5.")
         if not (1 <= df['show_time'][0] <= 3):
@@ -40,16 +41,16 @@ def predict_tickets(input_data):
         if df['seat_type'][0] not in ['Lower Hall', 'Upper Hall', 'VIP']:
             raise ValueError("seat_type must be one of 'Lower Hall', 'Upper Hall', or 'VIP'.")
 
-        df.drop_duplicates(inplace=True)
-        df['seat_type_encoded'] = loaded_label_encoder.transform(df['seat_type'])
-        onehot_encoded = loaded_onehot_encoder.transform(df[['cinema_location']])
+
+        df.drop_duplicates(inplace=True) # Remove duplicate rows
+        df['seat_type_encoded'] = loaded_label_encoder.transform(df['seat_type']) # Use loaded LabelEncoder
+        onehot_encoded = loaded_onehot_encoder.transform(df[['cinema_location']]) # Use loaded OneHotEncoder
         onehot_df = pd.DataFrame(onehot_encoded, columns=loaded_onehot_encoder.get_feature_names_out(['cinema_location']), index=df.index)
         df = pd.concat([df, onehot_df], axis=1)
         df = df.drop(['cinema_location', 'seat_type'], axis=1)
         print("\nAfter encoding and dropping categoricals:\n", df)
 
         def cap_outliers_iqr(df, col):
-            # ... (your outlier capping function) ...
             q1 = df[col].quantile(0.25)
             q3 = df[col].quantile(0.75)
             iqr = q3 - q1
@@ -58,18 +59,19 @@ def predict_tickets(input_data):
             df[col] = df[col].apply(lambda x: lower_bound if x < lower_bound else upper_bound if x > upper_bound else x)
             return df
 
+        # Drop tickets_sold if it happens to be in the input
         if 'tickets_sold' in df.columns:
-            X = df.drop('tickets_sold', axis=1)
+          X = df.drop('tickets_sold', axis=1)
         else:
-            X = df.copy()
+          X = df.copy()
 
-        # Align with trained reduced features FIRST
+        # 3. Align columns with the trained reduced feature set
         X_reduced = pd.DataFrame(columns=trained_reduced_features)
         for col in trained_reduced_features:
             if col in X.columns:
                 X_reduced[col] = X[col]
             else:
-                X_reduced[col] = 0  # Fill missing columns with 0
+                X_reduced[col] = 0  # Fill missing columns with 0 (assuming numerical)
         print("\nX_reduced after alignment:\n", X_reduced)
 
         # Identify numerical columns within the ALIGNED X_reduced
@@ -80,7 +82,8 @@ def predict_tickets(input_data):
         X_reduced[numerical_cols_reduced] = loaded_scaler.transform(X_reduced[numerical_cols_reduced])
         print("\nX_reduced after scaling:\n", X_reduced)
 
-        # 4. Make predictions
+
+        # 3. Make predictions
         prediction = loaded_model.predict(X_reduced)
         return prediction[0]
     except Exception as e:

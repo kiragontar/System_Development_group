@@ -53,6 +53,13 @@ def test_db_connection():
 
 test_db_connection()
 
-#Create all tables defined in your models
-#Base.metadata.create_all(engine)
-#print("Tables created successfully!")
+try:
+    Base.metadata.drop_all(engine)
+    print("All tables dropped.")
+
+    Base.metadata.create_all(engine)
+    print("All tables created.")
+
+    print("Database reset successfully.")
+except Exception as e:
+    print(f"An error occurred: {e}")

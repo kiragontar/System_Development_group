@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from . import Base
 from sqlalchemy.orm import Session
-from datetime import datetime
 
 
 # Screen model (Table):

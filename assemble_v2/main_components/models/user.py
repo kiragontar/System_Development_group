@@ -1,7 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from . import Base  # Import your Base from models/__init__.py. "." indicates a relative import, it tells python to look for "Base" within the package
-from datetime import datetime, timedelta, timezone
 
 # User model (Table):
 class User(Base):

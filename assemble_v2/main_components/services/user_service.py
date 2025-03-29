@@ -85,11 +85,11 @@ class UserService:
         if not self.validate_password_requirements(password):
             raise ValueError("Password does not meet requirements.")
 
-        role = self.role_service.get_role_by_id(role_id)
+        role = self.session.query(Role).filter_by(role_id=role_id).first()
         if not role:
             raise ValueError("Role not found.")
 
-        cinema = self.cinema_service.get_cinema_by_id(cinema_id)
+        cinema = self.session.query(Cinema).filter_by(cinema_id=cinema_id).first()
         if not cinema:
             raise ValueError("Cinema not found.")
 

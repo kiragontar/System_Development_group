@@ -22,15 +22,13 @@ if services_path not in sys.path:
     sys.path.insert(1, services_path)
 
 from main_components.services.city_service import CityService
-from main_components.models import Booking, CinemaFilm,cinema,city_pricing,city,film,payment,permissions,role,Screen,Screening,Seat,ticket,user
+from main_components.models import Booking, cinema,city,Film,permissions,role,Screen,Screening,Seat,ticket,user, SeatAvailability
 from main_components.models import Base
-from main_components.services.booking_service import BookingService, InvalidScreeningError, NoSeatsSelectedError
+from main_components.services.booking_service import BookingService, BookingNotFoundError, BookingTimeoutError
 from main_components.services.cinema_service import CinemaService
 from main_components.services.city_service import CityService
-from main_components.services.film_service import CinemaFilmService
-from main_components.services.payment_service import PaymentService
+from main_components.services.film_service import FilmService
 from main_components.services.permission_service import PermissionService
-from main_components.services.pricing_service import PricingService
 from main_components.services.role_service import RoleService
 from main_components.services.screen_service import ScreenService
 from main_components.services.screening_service import ScreeningService
@@ -54,14 +52,14 @@ def fill_city():
     city_service = CityService(session)
     try:
         cities = [
-            {"name": "Birmingham","country": "UK"},
-            {"name": "Bristol","country": "UK"},
-            {"name": "Cardiff","country": "UK"},
-            {"name": "London","country": "UK"}
+            {"name": "Birmingham","country": "UK", "price_morning" : 5, "price_afternoon" : 6, "price_evening" : 7},
+            {"name": "Bristol","country": "UK", "price_morning" : 6, "price_afternoon" : 7, "price_evening" : 8},
+            {"name": "Cardiff","country": "UK", "price_morning" : 5, "price_afternoon" : 6, "price_evening" : 7},
+            {"name": "London","country": "UK", "price_morning" : 10, "price_afternoon" : 11, "price_evening" : 12}
         ]
         for city_data in cities:
             try:
-                city_service.create_city(city_data["name"], city_data["country"])
+                city_service.create_city(city_data["name"], city_data["country"], city_data["price_morning"], city_data["price_afternoon"], city_data["price_evening"])
             except IntegrityError:
                 print(f"Duplicate entry found for city: {city_data['name']} in {city_data['country']}")
                 session.rollback()
@@ -75,28 +73,29 @@ def fill_city():
 
 fill_city()
 
+
 def fill_cinema():
     session = SessionLocal()
     cinema_service = CinemaService(session)
     city_service = CityService(session) 
     try:
         cinemas = [
-            {"name": "HC-Birm1", "address": "Birm1address" ,"city": city_service.get_city_by_name("Birmingham").city_id},
-            {"name": "HC-Birm2", "address": "Birm2address" ,"city": city_service.get_city_by_name("Birmingham").city_id},
-            {"name": "HC-Bris1", "address": "Bris1address" ,"city": city_service.get_city_by_name("Bristol").city_id},
-            {"name": "HC-Bris2", "address": "Bris2address" ,"city": city_service.get_city_by_name("Bristol").city_id},
-            {"name": "HC-Card1", "address": "Card1address" ,"city": city_service.get_city_by_name("Cardiff").city_id},
-            {"name": "HC-Card2", "address": "Card2address" ,"city": city_service.get_city_by_name("Cardiff").city_id},
-            {"name": "HC-Lond1", "address": "Lond1address" ,"city": city_service.get_city_by_name("London").city_id},
-            {"name": "HC-Lond2", "address": "Lond2address" ,"city": city_service.get_city_by_name("London").city_id}
+            {"city": city_service.get_city_by_name("Birmingham").city_id, "name": "HC-Birm1", "address": "Birm1address"},
+            {"city": city_service.get_city_by_name("Birmingham").city_id, "name": "HC-Birm2", "address": "Birm2address"},
+            {"city": city_service.get_city_by_name("Bristol").city_id, "name": "HC-Bris1", "address": "Bris1address"},
+            {"city": city_service.get_city_by_name("Bristol").city_id, "name": "HC-Bris2", "address": "Bris2address"},
+            {"city": city_service.get_city_by_name("Cardiff").city_id, "name": "HC-Card1", "address": "Card1address"},
+            {"city": city_service.get_city_by_name("Cardiff").city_id, "name": "HC-Card2", "address": "Card2address"},
+            {"city": city_service.get_city_by_name("London").city_id, "name": "HC-Lond1", "address": "Lond1address"},
+            {"city": city_service.get_city_by_name("London").city_id, "name": "HC-Lond2", "address": "Lond2address"}
         ]
         for cinema_data in cinemas:
             try:
-                cinema_service.create_cinema(cinema_data["name"], cinema_data["address"], cinema_data["city"])
+                cinema_service.create_cinema(cinema_data["city"], cinema_data["name"], cinema_data["address"])
             except IntegrityError:
                 print(f"Duplicate entry found for cinema: {cinema_data['name']} in {cinema_data['address']}")
                 session.rollback()
-            
+
         session.commit()
     except Exception as e:
         session.rollback()
@@ -108,9 +107,7 @@ fill_cinema()
 
 def fill_film():
     session = SessionLocal()
-    cinema_service = CinemaService(session)
-    cinema = cinema_service.get_cinema_by_name(1)
-    cinema_film_service = CinemaFilmService(cinema, session)
+    film_service = FilmService(session)
     try:
         films = [
             {"name": "The Shawshank Redemption", "genre": ["Drama"], "cast": ["Tim Robbins", "Morgan Freeman"], "description": "A story of hope and friendship.", "age_rating": 15, "critic_rating": 9.3, "runtime": 142, "release_date": datetime(1994, 9, 23)}, 
@@ -120,13 +117,21 @@ def fill_film():
             {"name": "Fight Club", "genre": ["Drama"], "cast": ["Brad Pitt", "Edward Norton"], "description": "An insomniac office worker and a devil-may-care soap maker form an underground fight club that evolves into much more.", "age_rating": 18, "critic_rating": 8.8, "runtime": 139, "release_date": datetime(1999, 10, 15)}, 
             {"name": "Pulp Fiction", "genre": ["Crime", "Drama"], "cast": ["John Travolta", "Uma Thurman"], "description": "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.", "age_rating": 18, "critic_rating": 8.9, "runtime": 154, "release_date": datetime(1994, 10, 14)}
         ]
+        changes_made = False # flag to track database changes.
         for film_data in films:
-            try:
-                cinema_film_service.create_film(film_data["name"], film_data["genre"], film_data["cast"], film_data["description"], film_data["age_rating"], film_data["critic_rating"], film_data["runtime"], film_data["release_date"])
-            except IntegrityError:
-                print(f"Duplicate entry found for film: {film_data['name']}")
-                session.rollback()
-        session.commit()
+            # Check for duplicates directly here
+            existing_film = session.query(Film).filter_by(name=film_data["name"], release_date=film_data["release_date"]).first()
+            if existing_film is None:
+                try:
+                    film_service.create_film(film_data["name"], film_data["genre"], film_data["cast"], film_data["description"], film_data["age_rating"], film_data["critic_rating"], film_data["runtime"], film_data["release_date"])
+                    changes_made = True
+                except IntegrityError:
+                    print(f"Duplicate entry found for film: {film_data['name']}")
+                    session.rollback()
+            else:
+                print(f"Film already exists: {film_data['name']} ({film_data['release_date']})")
+        if changes_made: # only commit if changes occurred.
+            session.commit()
     except Exception as e:
         session.rollback() 
         print(f"Error filling film data: {e}")
@@ -136,91 +141,6 @@ def fill_film():
 
 fill_film()
 
-def fill_cinema_film():
-    session = SessionLocal()
-    cinema_service = CinemaService(session)
-    try:
-        cinema1 = cinema_service.get_cinema_by_id(1)
-        cinema2 = cinema_service.get_cinema_by_id(2)
-        cinema3 = cinema_service.get_cinema_by_id(3)
-        cinema4 = cinema_service.get_cinema_by_id(4)
-        cinema5 = cinema_service.get_cinema_by_id(5)
-        cinema6 = cinema_service.get_cinema_by_id(6)
-        cinema7 = cinema_service.get_cinema_by_id(7)
-        cinema8 = cinema_service.get_cinema_by_id(8)
-
-        # Create CinemaFilmService with a valid cinema
-        cinema_film_service = CinemaFilmService(cinema1,session)
-
-        film1 = cinema_film_service.get_film_by_name("The Shawshank Redemption")
-        film2 = cinema_film_service.get_film_by_name("The Godfather")
-        film3 = cinema_film_service.get_film_by_name("The Dark Knight")
-        film4 = cinema_film_service.get_film_by_name("Inception")
-
-        # Create the associations
-        associations = [
-            (cinema1, film1),  # cinema1 shows film1
-            (cinema1, film2),  # cinema1 shows film2
-            (cinema1, film3),
-            (cinema1, film4),
-            (cinema2, film1),  # cinema2 shows film1
-            (cinema2, film2),
-            (cinema2, film3),
-            (cinema2, film4),
-            (cinema3, film1),
-            (cinema3, film2),
-            (cinema3, film3),
-            (cinema3, film4),
-            (cinema4, film1),
-            (cinema4, film2),
-            (cinema4, film3),
-            (cinema4, film4),
-            (cinema5, film1),
-            (cinema5, film2),
-            (cinema5, film3),
-            (cinema5, film4),
-            (cinema6, film1),
-            (cinema6, film2),
-            (cinema6, film3),
-            (cinema6, film4),
-            (cinema7, film1),
-            (cinema7, film2),
-            (cinema7, film3),
-            (cinema7, film4),
-            (cinema8, film1),
-            (cinema8, film2),
-            (cinema8, film3),
-            (cinema8, film4)
-        ]
-        # Add associations to the database
-        for cinema, film in associations:
-            cinema_film_service = CinemaFilmService(cinema, session)
-            # Check if the association already exists (using .first())
-            existing_association = session.query(CinemaFilm).filter(
-                CinemaFilm.cinema_id == cinema.cinema_id,
-                CinemaFilm.film_id == film.film_id
-                ).first()
-            if existing_association is None:  # Only insert if it doesn't exist
-                try:
-                    cinema_film_service.add_film_to_cinema(film=film)
-                except IntegrityError:
-                    print(f"Duplicate entry found for cinema: {cinema.name}, film: {film.name}")
-                    session.rollback()
-                except ValueError as e:
-                    print(f"Error: {e}")
-                    session.rollback()
-        session.commit()
-    except ValueError as e:
-        session.rollback()
-        print(f"Error: {e}")
-    except Exception as e:
-        session.rollback()
-        print(f"Error filling cinema-film data: {e}")
-    finally:
-        session.close()
-
-fill_cinema_film()
-
 def fill_screen():
     session = SessionLocal()
     cinema_service = CinemaService(session)
@@ -229,24 +149,24 @@ def fill_screen():
         cinemas = cinema_service.get_all_cinemas()
         for cinema in cinemas:
             screens = [
-                {"id": "S1", "capacity_upper": 50, "capacity_lower": 50, "capacity_vip": 10},
-                {"id": "S2", "capacity_upper": 40, "capacity_lower": 40, "capacity_vip": 10},
-                {"id": "S3", "capacity_upper": 30, "capacity_lower": 30, "capacity_vip": 10},
-                {"id": "S4", "capacity_upper": 20, "capacity_lower": 20, "capacity_vip": 10},
-                {"id": "S5", "capacity_upper": 40, "capacity_lower": 10, "capacity_vip": 10},
-                {"id": "S6", "capacity_upper": 40, "capacity_lower": 50, "capacity_vip": 10},
+                {"id": "S1", "total_capacity" : 100, "row_number" : 10},
+                {"id": "S2", "total_capacity" : 120, "row_number" : 8},
+                {"id": "S3", "total_capacity" : 90, "row_number" : 5},
+                {"id": "S4", "total_capacity" : 50, "row_number" : 15},
+                {"id": "S5", "total_capacity" : 70, "row_number" : 20},
+                {"id": "S6", "total_capacity" : 85, "row_number" : 17},
             ]
             for screen_data in screens:
                 existing_screen = screen_service.get_screen_by_id(screen_data["id"], cinema.cinema_id)
                 if existing_screen is None:
                     try:
-                        screen_service.create_screen(screen_data["id"], cinema.cinema_id, screen_data["capacity_upper"], screen_data["capacity_lower"], screen_data["capacity_vip"])
+                        screen_service.create_screen(screen_data["id"], cinema.cinema_id, screen_data["total_capacity"], screen_data["row_number"])
                     except IntegrityError:
                         print(f"Duplicate entry found for screen: {screen_data['id']} in cinema: {cinema.cinema_id}")
                         session.rollback()
                 else:
                     print(f"Screen {screen_data['id']} already exists in cinema: {cinema.cinema_id}. Skipping.")
-            session.commit()
+        session.commit()
     except Exception as e:
         session.rollback()
         print(f"Error filling screen data: {e}")
@@ -255,54 +175,10 @@ def fill_screen():
 
 fill_screen()
 
-def fill_screening(start_hour, start_minute):
-    session = SessionLocal()
-    screen_service = ScreenService(session)
-    cinema_service = CinemaService(session)
-    screening_service = ScreeningService(session)
-    try:
-        cinemas = cinema_service.get_all_cinemas()
-        for cinema in cinemas:
-            film_service = CinemaFilmService(cinema,session)
-            films = film_service.get_all_films()
-            screens = cinema_service.get_screens(cinema.cinema_id) # Get all screens for the cinema
-            film_index = 0 # To cycle through films
-
-            # Use the provided start time
-            base_start_datetime = datetime(2024, 3, 26, start_hour, start_minute)
-
-            for screen in screens:
-                # Assign a film (round-robin)
-                film = films[film_index % len(films)]
-                film_index += 1
-
-                end_datetime = base_start_datetime + timedelta(minutes=film.runtime)
-
-                # Check if screening already exists.
-                screening_exists = session.query(Screening).filter(
-                    Screening.screen_id == screen.screen_id,
-                    Screening.cinema_id == cinema.cinema_id,
-                    Screening.start_time == base_start_datetime,
-                ).first()
-                
-                if not screening_exists:
-                    screening_service.create_screening(screen.screen_id, film.film_id,base_start_datetime.date(), base_start_datetime, end_datetime, cinema.cinema_id, 0, 0, 0)
-                else:
-                    print(f"Screening already exists: Cinema: {cinema.cinema_id}, Screen: {screen.screen_id}, Start: {base_start_datetime}")
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        print(f"Error filling screening data: {e}")
-    finally:
-        session.close()
-
-fill_screening(10, 0)
-
 def fill_seat():
     session = SessionLocal()
     screen_service = ScreenService(session)
     cinema_service = CinemaService(session)
-    seat_service = SeatService(session)
     try:
         cinemas = cinema_service.get_all_cinemas()
         for cinema in cinemas:
@@ -312,53 +188,28 @@ def fill_seat():
                 vip_seats = 10
                 lower_hall_seats = int(total_seats * 0.3)
                 upper_hall_seats = total_seats - vip_seats - lower_hall_seats
-                seats_per_row = 10
-                row_number = 1
-                seat_number = 1
                 seat_objects = []  # List to hold Seat objects for batch insert
-                batch_size = 100  # Number of seats to insert in each batch
-
 
                 # Create VIP Seats
                 for _ in range(vip_seats):
-                    seat_objects.append(Seat(screen_id=screen.screen_id, cinema_id=cinema.cinema_id, row_number=row_number, seat_number=seat_number, seat_class='VIP'))
-                    seat_number += 1
-                    if seat_number > seats_per_row:
-                        row_number += 1
-                        seat_number = 1
-                    if len(seat_objects) >= batch_size:
-                        session.bulk_save_objects(seat_objects)
-                        session.commit()
-                        seat_objects = []
-
+                    seat_objects.append(Seat(screen_id=screen.screen_id, cinema_id=cinema.cinema_id, seat_type='VIP'))
                 # Create Lower Hall Seats
                 for _ in range(lower_hall_seats):
-                    seat_objects.append(Seat(screen_id=screen.screen_id, cinema_id=cinema.cinema_id, row_number=row_number, seat_number=seat_number, seat_class='Lower Class'))
-                    seat_number += 1
-                    if seat_number > seats_per_row:
-                        row_number += 1
-                        seat_number = 1
-                    if len(seat_objects) >= batch_size:
-                        session.bulk_save_objects(seat_objects)
-                        session.commit()
-                        seat_objects = []
-
+                    seat_objects.append(Seat(screen_id=screen.screen_id, cinema_id=cinema.cinema_id, seat_type='Lower'))
                 # Create Upper Hall Seats
                 for _ in range(upper_hall_seats):
-                    seat_objects.append(Seat(screen_id=screen.screen_id, cinema_id=cinema.cinema_id, row_number=row_number, seat_number=seat_number, seat_class='Upper Class'))
-                    seat_number += 1
-                    if seat_number > seats_per_row:
-                        row_number += 1
-                        seat_number = 1
-                    if len(seat_objects) >= batch_size:
-                        session.bulk_save_objects(seat_objects)
-                        session.commit()
-                        seat_objects = []
+                    seat_objects.append(Seat(screen_id=screen.screen_id, cinema_id=cinema.cinema_id, seat_type='Upper'))
                 
-                # Insert any remaining seats
-                if seat_objects:
+                # Batch insert all seats
+                try:
                     session.bulk_save_objects(seat_objects)
-                    session.commit()
+                except IntegrityError:
+                    session.rollback()
+                    print("Duplicate entry found for seats you are inserting.")
+                except Exception as e:
+                    session.rollback()
+                    print(f"Error during seat insertion: {e}")
+        session.commit()
     except Exception as e:
         session.rollback()
         print(f"Error filling seat data: {e}")
@@ -366,6 +217,130 @@ def fill_seat():
         session.close()
 
 fill_seat()
+
+def fill_screening(start_hour, start_minute):
+    session = SessionLocal()
+    screen_service = ScreenService(session)
+    cinema_service = CinemaService(session)
+    film_service = FilmService(session)
+    screening_service = ScreeningService(session)
+    try:
+        cinemas = cinema_service.get_all_cinemas()
+        films = film_service.get_all_films()
+        base_date = datetime.now().date()
+        start_time = time(start_hour,start_minute)
+        screening_datetime = datetime.combine(base_date, start_time)
+        for cinema in cinemas:
+            screens = screen_service.get_screens(cinema.cinema_id)
+            for screen in screens:
+                # Pick a random film for this screen
+                film = random.choice(films)
+                # Check for duplicates before creating a screening
+               # Check for duplicates using filter_by()
+                existing_screening = session.query(Screening).filter_by(
+                    screen_id=screen.screen_id,
+                    cinema_id=cinema.cinema_id,
+                    start_time=screening_datetime
+                ).first()
+                if not existing_screening:
+                    try:
+                        screening_service.create_screening(film.film_id, screen.screen_id, cinema.cinema_id, base_date, screening_datetime, screening_availability=0)
+                    except IntegrityError:
+                        session.rollback()
+                        screening_datetime = datetime.combine(base_date, start_time)
+                        print(f"IntegrityError: Screening already exists: Cinema: {cinema.cinema_id}, Screen: {screen.screen_id}, Start: {screening_datetime}")
+                    except Exception as e:
+                        session.rollback()
+                        print(f"Error creating screening: {e}")
+                else:
+                    print(f"Screening already exists: Cinema: {cinema.cinema_id}, Screen: {screen.screen_id}, Start: {screening_datetime}")
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        print(f"Error filling screening data: {e}")
+    finally:
+        session.close()
+
+fill_screening(10, 0)
+
+
+def fill_seat_availability():
+    session = SessionLocal()
+    screening_service = ScreeningService(session)
+    try:
+        screenings = screening_service.get_all_screenings()
+        for screening in screenings:
+            # Get all seats for the cinema of the screening.
+            cinema_id = screening.cinema_id
+            screen_id = screening.screen_id
+            seats = session.query(Seat).filter_by(cinema_id=cinema_id, screen_id=screen_id).all()
+
+            if not seats:
+                print(f"No seats found for cinema {cinema_id}, screen {screen_id} in screening {screening.screening_id}.")
+                continue  # Move to the next screening
+
+            for seat in seats:
+                # Check if a SeatAvailability record already exists
+                existing_availability = session.query(SeatAvailability).filter_by(screening_id=screening.screening_id,seat_id=seat.seat_id).first()
+
+                if not existing_availability:
+                    seat_availability = SeatAvailability(screening_id=screening.screening_id, seat_id=seat.seat_id, booking_id=None, seat_availability=1) # Initally no booking. and seats are available
+                    session.add(seat_availability)
+                else:
+                    print(f"Seat availability already exists for screening {screening.screening_id}, seat {seat.seat_id}. Skipping.")
+
+        session.commit()
+    
+    except Exception as e:
+        session.rollback()
+        print(f"Error populating seat availability: {e}")
+    finally:
+        session.close()
+
+fill_seat_availability()
+
+
+
+def fill_booking():
+    session = SessionLocal()
+    seat_service = SeatService(session)
+    ticket_service = TicketService(session)
+    booking_service = BookingService(session, ticket_service)
+    screening_service = ScreeningService(session)
+    try:
+        seat1 = seat_service.get_seat_by_id("S1_C1_1")
+        seat2 = seat_service.get_seat_by_id("S1_C1_10")
+        seat3 = seat_service.get_seat_by_id("S1_C1_13")
+        if not seat1 or not seat2 or not seat3:
+            print("Error: One or more seats not found.")
+            return
+
+        seats_to_book = [seat1.seat_id, seat2.seat_id, seat3.seat_id]
+
+        customer_name = "Customer1"
+        customer_email = "Customer1@gmail.com"
+        customer_phone = "123-456-7890"
+
+        screening = screening_service.get_screening_by_id(1)
+        if not screening:
+            print("Error: Screening not found.")
+            return
+
+        bookings = booking_service.create_booking(seat_ids=seats_to_book, customer_name= customer_name, customer_email= customer_email, customer_phone=customer_phone, screening_id=screening.screening_id)
+        if bookings is None:
+            print(f"Failed to create booking for seats {seats_to_book} and screening {screening.screening_id}")
+
+    except (BookingNotFoundError, BookingTimeoutError) as e:
+        session.rollback()
+        print(f"Error creating bookings: {e}")
+    except Exception as e:
+        session.rollback()
+        print(f"Error filling booking data: {e}")
+    finally:
+        session.close()
+
+fill_booking()
+
 
 def fill_permission():
     session = SessionLocal()
@@ -457,7 +432,7 @@ def fill_user():
     session = SessionLocal()
     role_service = RoleService(session)
     cinema_service = CinemaService(session)
-    user_service = UserService(session, role_service, cinema_service)
+    user_service = UserService(session)
     try:
         cinema1 = cinema_service.get_cinema_by_id(1)
         users = [
@@ -479,131 +454,3 @@ def fill_user():
         session.close()
 
 fill_user()
-
-def fill_pricing():
-    session = SessionLocal()
-    pricing_service = PricingService(session)
-    try:
-        lower_class_prices = [
-            {"city": "Birmingham", "time_of_day": "Morning", "price": 5.00},
-            {"city": "Birmingham", "time_of_day": "Afternoon", "price": 6.00},
-            {"city": "Birmingham", "time_of_day": "Evening", "price": 7.00},
-            {"city": "Bristol", "time_of_day": "Morning", "price": 6.00},
-            {"city": "Bristol", "time_of_day": "Afternoon", "price": 7.00},
-            {"city": "Bristol", "time_of_day": "Evening", "price": 8.00},
-            {"city": "Cardiff", "time_of_day": "Morning", "price": 5.00},
-            {"city": "Cardiff", "time_of_day": "Afternoon", "price": 6.00},
-            {"city": "Cardiff", "time_of_day": "Evening", "price": 7.00},
-            {"city": "London", "time_of_day": "Morning", "price": 10.00},
-            {"city": "London", "time_of_day": "Afternoon", "price": 11.00},
-            {"city": "London", "time_of_day": "Evening", "price": 12.00}
-        ]
-        for lower_class_price in lower_class_prices:
-            city = lower_class_price["city"]
-            time_of_day = lower_class_price["time_of_day"]
-            price = lower_class_price["price"]
-
-            try:
-                # Add lower class prices
-                pricing_service.add_price(city, "Lower Class", time_of_day, price)
-
-                # Calculate Upper class and VIP prices using get_price
-                upper_class_price = pricing_service.get_price(city, "Upper Class", time_of_day)
-                vip_price = pricing_service.get_price(city, "VIP", time_of_day)
-
-                # Add upper class and vip prices
-                pricing_service.add_price(city, "Upper Class", time_of_day, upper_class_price)
-                pricing_service.add_price(city, "VIP", time_of_day, vip_price)
-
-            except IntegrityError:
-                print(f"Duplicate entry found for pricing: {city}, {time_of_day}")
-                session.rollback()
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        print(f"Error filling pricing data: {e}")
-    finally:
-        session.close()
-
-fill_pricing()
-
-def fill_booking():
-    session = SessionLocal()
-    seat_service = SeatService(session)
-    ticket_service = TicketService(session)
-    pricing_service = PricingService(session)
-    booking_service = BookingService(session, seat_service, ticket_service, pricing_service)
-    screening_service = ScreeningService(session)
-    try:
-        screening = screening_service.get_screening_by_id(37)
-        seats_to_book = [seat_service.get_seat_by_id(19)]
-    
-        # Check if all seats were retrieved successfully
-        if any(seat is None for seat in seats_to_book):
-            print(f"Not all seats (1, 2, 3) exist for screening {screening.screening_id}.")
-            return
-        
-        # Check seat availability
-        unavailable_seats = [seat for seat in seats_to_book if not seat.is_available]
-
-        if unavailable_seats:
-            print(f"Some seats are unavailable for screening {screening.screening_id}: {[seat.seat_id for seat in unavailable_seats]}")
-            return
-
-        # Create booking
-        customer_name = "SEventh Customer"
-        customer_email= "SeventhCustomer@gmail.com"
-        customer_phone= "12332332-4356-7890"
-        try:
-            booking = booking_service.create_booking(screening.screening_id, price=0, seats=seats_to_book, customer_name=customer_name, customer_email=customer_email, customer_phone=customer_phone)
-        except ValueError as e:
-            print(f"Skipping booking because of missing price for screening {screening.screening_id}: {e}")
-        # Place booking
-        booking_service.place_booking(booking.booking_id)
-        session.commit()
-        print((f"Bookings created successfully : {booking.booking_id}"))
-
-    except (InvalidScreeningError, NoSeatsSelectedError) as e:
-        session.rollback()
-        print(f"Error creating bookings: {e}")
-    except Exception as e:
-        session.rollback()
-        print(f"Error filling booking data: {e}")
-    finally:
-        session.close()
-
-fill_booking()
-
-def fill_payment():
-    session = SessionLocal()
-    payment_service = PaymentService(session)
-    seat_service = SeatService(session)
-    ticket_service = TicketService(session)
-    pricing_service = PricingService(session)
-    booking_service = BookingService(session, seat_service, ticket_service, pricing_service)
-    try:
-        bookings = booking_service.get_all_bookings()
-        for booking in bookings:
-            # Generate random payment details
-            payment_method = random.choice(["Credit Card", "Debit Card", "Cash"])
-            amount = booking.price
-            transaction_id = str(uuid.uuid4())
-            payment=payment_service.create_payment(booking.booking_id, payment_method,booking.price, transaction_id)
-
-            # Update payment status (e.g., set to PAID)
-            payment_service.update_payment_status(
-                payment_id=payment.payment_id,
-                payment_status=PaymentStatus.PAID,
-                transaction_id=transaction_id
-            )
-            print(f"Payment created for booking {booking.booking_id}")
-
-        session.commit()
-        print("Payment created successfully!")
-    except Exception as e:
-        session.rollback()
-        print(f"Error filling payment data: {e}")
-    finally:
-        session.close()
-
-fill_payment()

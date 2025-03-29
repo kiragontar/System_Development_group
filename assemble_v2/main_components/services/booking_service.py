@@ -3,12 +3,13 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from sqlalchemy.orm import Session
-from main_components.models import Booking, Screening, Ticket, Seat, Screen, Cinema, City, SeatAvailability
+from main_components.models import Booking, Screening, Ticket, Seat, Cinema, City, SeatAvailability
 from main_components.enums import PaymentStatus
 import uuid
 from datetime import datetime, timedelta
 from main_components.services.ticket_service import TicketService
 import logging 
+from typing import List
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,13 +25,11 @@ class BookingService:
         self.session = session
         self.ticket_service = ticket_service
 
-    def create_booking(self, seat_id : str, customer_name:str, customer_email:str = None, customer_phone:str = None, screening_id : int = None) -> Booking:
+    def create_booking(self, seat_ids : List[str], customer_name:str, customer_email:str = None, customer_phone:str = None, screening_id : int = None) -> Booking:
         """Creates a new booking."""
+        bookings = []
         try:
-            # Check if seat is available
-            seat_availability = self.session.query(SeatAvailability).filter_by(seat_id=seat_id, screening_id=screening_id).first()
-            if not seat_availability or seat_availability.seat_availability == 0:
-                    raise ValueError(f"Seat with ID {seat_id} is not available for screening {screening_id}.")
+            booking_id = str(uuid.uuid4())
 
             # Bookings can only be booked up to one week in advance of a screening.
             # Validate screening date.
@@ -40,39 +39,57 @@ class BookingService:
             one_week_ahead = datetime.now().date() + timedelta(days=7) # Get date one week ahead.
             if screening.date > one_week_ahead: # Meaning screening date is more than one week ahead.
                 raise ValueError("Bookings can only be made up to one week in advance.")
-            booking_id = str(uuid.uuid4())
-            booking = Booking(booking_id=booking_id, seat_id=seat_id, customer_name=customer_name, customer_email=customer_email, customer_phone=customer_phone)
-            self.session.add(booking)
-            self.session.commit()
-            if booking:
-                # If booking happened, need to update seat availability.
+            
+            for seat_id in seat_ids:
+                # Check if seat is available
+                seat_availability = self.session.query(SeatAvailability).filter_by(seat_id=seat_id, screening_id=screening_id).first()
+                if not seat_availability or seat_availability.seat_availability == 0:
+                    raise ValueError(f"Seat with ID {seat_id} is not available for screening {screening_id}.")
+
+                # Check for duplicate seat_id for the same booking_id
+                existing_booking = self.session.query(Booking).filter_by(booking_id=booking_id, seat_id=seat_id).first()
+                if existing_booking:
+                    raise ValueError(f"Seat {seat_id} already booked for booking {booking_id}")
+            
+                booking = Booking(booking_id=booking_id, seat_id=seat_id, customer_name=customer_name, customer_email=customer_email, customer_phone=customer_phone)
+                self.session.add(booking)
+                bookings.append(booking)
+
+            # Second loop: Update seat availability after all seats are checked.
+            for seat_id in seat_ids:
+                seat_availability = self.session.query(SeatAvailability).filter_by(seat_id=seat_id,screening_id=screening_id).first()
                 seat_availability.seat_availability = 0
-                self.session.commit()
 
-            # Get cinema from seatid.
-            seat = self.session.query(Seat).filter_by(seat_id=seat_id).first()
-            if seat:
-                seat_type = seat.seat_type
-                cinema_id = seat.cinema_id
-                cinema = self.session.query(Cinema).filter_by(cinema_id=cinema_id).first()
-                if cinema:
-                    city = self.session.query(City).filter_by(city_id=cinema.city_id).first()
-                    if city:
-                        if datetime.now().hour < 12:
-                            ticket_price = city.price_morning
-                        elif datetime.now().hour < 18:
-                            ticket_price = city.price_afternoon
-                        else:
-                            ticket_price = city.price_evening
-            if seat_type == 'Upper':
-                ticket_price = ticket_price * 1.2
-            elif seat_type == 'VIP':
-                ticket_price = (ticket_price * 1.2) * 1.2
-            # Create ticket for booking.
-            ticket = Ticket(booking_id=booking_id, seat_id=seat_id, ticket_price=ticket_price, issue_date=datetime.now(), payment_status= PaymentStatus.PAID)
-            self.session.add(ticket)
-            self.session.commit()
+            self.session.commit()  # Commit after updating availability.
 
+
+            # Get cinema from seatid (using the first seat_id).
+            if seat_ids:
+                seat = self.session.query(Seat).filter_by(seat_id=seat_ids[0]).first()
+                if seat:
+                    seat_type = seat.seat_type
+                    cinema_id = seat.cinema_id
+                    cinema = self.session.query(Cinema).filter_by(cinema_id=cinema_id).first()
+                    if cinema:
+                        city = self.session.query(City).filter_by(city_id=cinema.city_id).first()
+                        if city:
+                            if datetime.now().hour < 12:
+                                ticket_price = city.price_morning
+                            elif datetime.now().hour < 18:
+                                ticket_price = city.price_afternoon
+                            else:
+                                ticket_price = city.price_evening
+
+                        if seat_type == 'Upper':
+                            ticket_price = ticket_price * 1.2
+                        elif seat_type == 'VIP':
+                            ticket_price = (ticket_price * 1.2) * 1.2
+                        # Create ticket for all seats from booking.
+                        for seat_id in seat_ids:
+                            ticket = Ticket(booking_id=booking_id, seat_id=seat_id, ticket_price=ticket_price, payment_status= PaymentStatus.PAID)
+                            self.session.add(ticket)
+                        self.session.commit()
+            return bookings
         except Exception as e:
             self.session.rollback()
             logging.error(f"Failed to create booking: {e}")

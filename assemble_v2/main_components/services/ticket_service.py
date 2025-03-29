@@ -3,7 +3,7 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from sqlalchemy.orm import Session
-from main_components.models import Seat, Ticket, SeatAvailability, Screening
+from main_components.models import Ticket, SeatAvailability, Screening
 from main_components.enums import PaymentStatus
 from datetime import datetime, timedelta
 import logging 

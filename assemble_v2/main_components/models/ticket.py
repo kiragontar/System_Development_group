@@ -1,9 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Enum
 from sqlalchemy.orm import relationship
 from . import Base
-from .screening import Screening
-from .booking import Booking
-from .seat import Seat
 from main_components.enums import PaymentStatus
 from datetime import datetime
 

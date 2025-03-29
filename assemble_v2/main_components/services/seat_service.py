@@ -26,9 +26,9 @@ class SeatService:
             return True
         return False
 
-    def get_seat_by_id(self, seat_id: int, cinema_id : int) -> Seat:
+    def get_seat_by_id(self, seat_id: str) -> Seat:
         """Retrieves a seat by its ID."""
-        seat = self.session.query(Seat).filter_by(seat_id=seat_id, cinema_id=cinema_id).first()
+        seat = self.session.query(Seat).filter_by(seat_id=seat_id).first()
         return seat
 
     def get_all_seats_by_screen(self, screen_id: str, cinema_id : int) -> list[Seat]:
@@ -36,7 +36,7 @@ class SeatService:
         seats = self.session.query(Seat).filter_by(screen_id=screen_id, cinema_id=cinema_id).all()
         return seats
     
-    def update_seat(self, seat_id: int, screen_id: str = None, cinema_id: int = None, seat_type: str = None) -> Seat:
+    def update_seat(self, seat_id: str, screen_id: str = None, cinema_id: int = None, seat_type: str = None) -> Seat:
         """Updates a seat by its ID."""
         seat = self.session.query(Seat).filter_by(seat_id=seat_id).first()
         if seat:

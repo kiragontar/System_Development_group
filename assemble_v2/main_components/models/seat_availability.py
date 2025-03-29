@@ -1,9 +1,6 @@
-from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Date
+from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 from . import Base
-from . seat import Seat
-from . screening import Screening
-from . booking import Booking
 
 class SeatAvailability(Base):
     """
@@ -13,7 +10,7 @@ class SeatAvailability(Base):
     
     screening_id = Column(Integer, ForeignKey('screenings.screening_id'), primary_key=True)
     seat_id = Column(String(255), ForeignKey('seats.seat_id'), primary_key=True)
-    booking_id = Column(String(255), ForeignKey('bookings.booking_id'))
+    booking_id = Column(String(255), ForeignKey('bookings.booking_id'), nullable=True)
     seat_availability = Column(Integer, nullable=False)
 
     # Relationships

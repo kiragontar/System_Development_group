@@ -7,13 +7,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from main_components.models import Base
 from main_components.models.booking import Booking
-from main_components.models.cinema_film import CinemaFilm
+from main_components.models.seat_availability import SeatAvailability
 from main_components.models.cinema import Cinema
-from main_components.models.city_pricing import CityPricing
 from main_components.models.city import City
 from main_components.models.film import Film
 from main_components.enums import PaymentStatus
-from main_components.models.payment import Payment
 from main_components.models.permissions import Permission
 from main_components.models.role import Role
 from main_components.models.screen import Screen
@@ -57,7 +55,13 @@ def test_db_connection():
 
 test_db_connection()
 
-#Create all tables defined in your models
-#Base.metadata.create_all(engine)
-#print("Tables created successfully!")
+try:
+    Base.metadata.drop_all(engine)
+    print("All tables dropped.")
 
+    Base.metadata.create_all(engine)
+    print("All tables created.")
+
+    print("Database reset successfully.")
+except Exception as e:
+    print(f"An error occurred: {e}")
