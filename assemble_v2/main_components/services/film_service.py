@@ -88,21 +88,6 @@ class FilmService:
             raise ValueError(f"Failed to delete film: {e}")
 
 
-    def add_film_to_cinema(self, film: Film) -> None:
-        """Adds a film to the cinema."""
-        if self.cinema is None:
-            raise ValueError("Cinema must be set before adding a film.")
-        cinema_film = CinemaFilm(cinema_id=self.cinema.cinema_id, film_id=film.film_id)
-        self.session.add(cinema_film)
-        self.session.commit()
-    
-    def remove_film_from_cinema(self, film_id: str) -> None:
-        """Removes a film from the cinema."""
-        cinema_film = self.session.query(CinemaFilm).filter_by(cinema_id=self.cinema.cinema_id, film_id=film_id).first()
-        if cinema_film:
-            self.session.delete(cinema_film)
-            self.session.commit()
-
     def update_film(self, film_id: int, name: str = None, genre: List[str] = None, cast: List[str] = None,
                     description: str = None, age_rating: str = None, critic_rating: float = None,
                     runtime: int = None, release_date: datetime = None, movie_poster: str = None) -> Optional[Film]:

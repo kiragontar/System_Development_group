@@ -22,7 +22,7 @@ class LoginFrame(tk.Frame):
         self.role_service = RoleService(self.session)
         self.cinema_service = CinemaService(self.session)
         self.city_service = CityService(self.session)
-        self.user_service = UserService(self.session, self.role_service, self.cinema_service)
+        self.user_service = UserService(self.session)
         
         # Set up the UI
         self.setup_ui()
@@ -32,21 +32,6 @@ class LoginFrame(tk.Frame):
         frame = tk.Frame(self, bg="#b6b8ba")
         frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         
-        # Test buttons for development (can be removed in production)
-        test_frame = tk.Frame(self, bg="#b6b8ba")
-        test_frame.pack(side=tk.TOP, pady=10)
-        
-        create_city_button = tk.Button(test_frame, text="Create Test City", command=self.create_test_city)
-        create_city_button.pack(side=tk.LEFT, padx=5)
-        
-        create_cinema_button = tk.Button(test_frame, text="Create Test Cinema", command=self.create_test_cinema)
-        create_cinema_button.pack(side=tk.LEFT, padx=5)
-        
-        create_role_button = tk.Button(test_frame, text="Create Test Role", command=self.create_test_role)
-        create_role_button.pack(side=tk.LEFT, padx=5)
-        
-        create_user_button = tk.Button(test_frame, text="Create Test User", command=self.create_test_user)
-        create_user_button.pack(side=tk.LEFT, padx=5)
         
         # Username field
         label_username = tk.Label(frame, text="Username", font=("Arial", 14), bg="#b6b8ba")
@@ -83,6 +68,20 @@ class LoginFrame(tk.Frame):
         button_signup = tk.Button(button_frame, text="Sign Up", command=self.signup, 
                              bd=0, font=("Arial", 14), highlightthickness=1)
         button_signup.pack(side=tk.LEFT, padx=10)
+        
+        # Quick login buttons frame
+        quick_frame = tk.Frame(frame, bg="#b6b8ba")
+        quick_frame.grid(row=3, column=0, columnspan=2, pady=10)
+        quick_logins = [
+            {"username": "admin1", "password": "admin1pass$"},
+            {"username": "manager1", "password": "manager1pass$"},
+            {"username": "staff1", "password": "staff1pass$"}
+        ]
+        for user in quick_logins:
+            btn = tk.Button(quick_frame, text=f"Quick Login: {user['username']}",
+                            command=lambda u=user: self.quick_login(u),
+                            bd=0, font=("Arial", 12))
+            btn.pack(side=tk.LEFT, padx=5)
 
     def clear_placeholder(self, event):
         if event.widget.get() == event.widget.placeholder:
@@ -121,69 +120,18 @@ class LoginFrame(tk.Frame):
     def signup(self):
         messagebox.showinfo("Sign Up", "Sign Up functionality is not implemented yet")
     
-    # Test utility methods
-    def create_test_city(self):
-        try:
-            existing_city = self.city_service.get_city_by_name("Test City")
-            if not existing_city:
-                test_city = self.city_service.create_city(
-                    name="Test City",
-                    country="Test Country"
-                )
-                messagebox.showinfo("City Creation", "Test city created successfully.")
-                return test_city.city_id
-            else:
-                return existing_city.city_id
-        except Exception as e:
-            messagebox.showerror("City Creation", f"Failed to create test city: {e}")
-            return None
+    def quick_login(self, user_info):
+        username = user_info["username"]
+        password = user_info["password"]
+        user = self.user_service.get_by_username(username)
+        is_authenticated = self.user_service.login(username, password)
+        if is_authenticated and user:
+            messagebox.showinfo("Login", f"Quick login as {username} successful")
+            if self.callback:
+                self.callback(user.role.name if user.role else "Unknown", user)
+        else:
+            messagebox.showerror("Login", f"Quick login failed for {username}")
 
-    def create_test_cinema(self):
-        city_id = self.create_test_city()
-        try:
-            existing_cinema = self.cinema_service.get_cinema_by_name("Test Cinema")
-            if not existing_cinema:
-                test_cinema = self.cinema_service.create_cinema(
-                    name="Test Cinema",
-                    address="123 Test St",
-                    city_id=city_id
-                )
-                messagebox.showinfo("Cinema Creation", "Test cinema created successfully.")
-                return test_cinema.cinema_id
-            else:
-                return existing_cinema.cinema_id
-        except Exception as e:
-            messagebox.showerror("Cinema Creation", f"Failed to create test cinema: {e}")
-            return None
-    
-    def create_test_role(self):
-        try:
-            existing_role = self.role_service.get_role_by_name("Test Role")
-            if not existing_role:
-                test_role = self.role_service.create_role(name="Test Role")
-                messagebox.showinfo("Role Creation", "Test role created successfully.")
-                return test_role.role_id
-            else:
-                return existing_role.role_id
-        except Exception as e:
-            messagebox.showerror("Role Creation", f"Failed to create test role: {e}")
-            return None
-            
-    def create_test_user(self):
-        cinema_id = self.create_test_cinema()
-        role_id = self.create_test_role()
-        try:
-            test_user = self.user_service.create_user(
-                username="testuser",
-                password="testpassword1$",
-                firstname="test",
-                lastname="testlast",
-                role_id=role_id,
-                cinema_id=cinema_id
-            )
-            messagebox.showinfo("User Creation", "Test user created successfully.")
-        except Exception as e:
-            messagebox.showerror("User Creation", f"Failed to create test user: {e}")
 
 # Only runs when login.py is executed directly
 if __name__ == "__main__":
