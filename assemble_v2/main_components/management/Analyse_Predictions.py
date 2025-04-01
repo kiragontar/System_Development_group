@@ -21,8 +21,8 @@ class PredictionAnalysisPage(tk.Frame):
         self.film_service = FilmService(self.session)
         self.city_service = CityService(self.session)
         self.setup_ui()
-        self.model = joblib.load('program/cinema_booking_prediction/gradient_boosting_model.joblib')
-        self.scaler = joblib.load('program/cinema_booking_prediction/scaler.joblib')
+        self.model = joblib.load('gradient_boosting_model.joblib')
+        self.scaler = joblib.load('scaler.joblib')
 
     def setup_ui(self):
         # --- Prediction for a Specific Showing ---
