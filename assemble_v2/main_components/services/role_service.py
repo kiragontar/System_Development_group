@@ -18,6 +18,8 @@ class RoleService:
 
     def create_role(self, name: str) -> Role:
         """Creates a new role."""
+        if self.get_role_by_name(name):
+            raise ValueError("Role with this name already exists.")
         role = Role(name=name)
         self.session.add(role)
         self.session.commit()
@@ -40,6 +42,9 @@ class RoleService:
         role = self.get_role_by_id(role_id)
         if role:
             if name:
+                existing_role = self.get_role_by_name(name)
+                if existing_role and existing_role.role_id != role_id:
+                    raise ValueError("Role with this name already exists.")
                 role.name = name
             self.session.commit()
             return role

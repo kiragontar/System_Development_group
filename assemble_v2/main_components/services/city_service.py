@@ -18,6 +18,13 @@ class CityService:
 
     def create_city(self, name: str, country: str, price_morning : int, price_afternoon : int, price_evening : int) -> City:
         """Creates a new city."""
+        existing_city = self.session.query(City).filter_by(
+            name=name,
+            country=country
+        ).first()
+
+        if existing_city:
+            raise ValueError(f"City with name '{name}' and country '{country}' already exists.")
         city = City(name=name, country=country, price_morning = price_morning, price_afternoon = price_afternoon, price_evening = price_evening)
         self.session.add(city)
         self.session.commit()
@@ -49,6 +56,16 @@ class CityService:
                 city.price_afternoon = price_afternoon
             if price_evening:
                 city.price_evening = price_evening
+
+            # Duplicate check
+            existing_city = self.session.query(City).filter_by(
+                name=name,
+                country=country
+            ).filter(City.city_id != city_id).first() #exclude the current city
+
+            if existing_city:
+                raise ValueError(f"City with name '{city.name}' and country '{city.country}' already exists.")
+            
             self.session.commit()
             return city
         return None

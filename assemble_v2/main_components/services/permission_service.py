@@ -18,6 +18,8 @@ class PermissionService:
 
     def create_permission(self, name: str) -> Permission:
         """Creates a new permission."""
+        if self.get_permission_by_name(name):
+            raise ValueError("Permission with this name already exists.")
         permission = Permission(name=name)
         self.session.add(permission)
         self.session.commit()
@@ -39,6 +41,9 @@ class PermissionService:
         """Updates a permission's name."""
         permission = self.get_permission_by_id(permission_id)
         if permission:
+            existing_permission = self.get_permission_by_name(name)
+            if existing_permission and existing_permission.permission_id != permission_id:
+                raise ValueError("Permission with this name already exists.")
             permission.name = name
             self.session.commit()
             return permission

@@ -11,6 +11,15 @@ class CinemaService:
         self.session = session
 
     def create_cinema(self, city_id: int, name: str, address: str) -> Cinema:
+        existing_cinema = self.session.query(Cinema).filter_by(
+            city_id=city_id,
+            name=name,
+            address=address
+        ).first()
+
+        if existing_cinema:
+            raise ValueError(f"Cinema with name '{name}', City ID '{city_id}', and address '{address}' already exists.")
+        
         cinema = Cinema(city_id=city_id, name=name, address=address)
         self.session.add(cinema)
         self.session.commit()
@@ -34,6 +43,16 @@ class CinemaService:
                 cinema.name = name
             if address:
                 cinema.address = address
+
+            existing_cinema = self.session.query(Cinema).filter_by(
+                city_id=city_id,
+                name=name,
+                address=address
+            ).filter(Cinema.cinema_id != cinema_id).first() #exclude the current cinema
+
+            if existing_cinema:
+                raise ValueError(f"Cinema with name '{cinema.name}', City ID '{cinema.city_id}', and address '{cinema.address}' already exists.")
+            
             self.session.commit()
             return cinema
         return None

@@ -82,6 +82,10 @@ class UserService:
     
     
     def create_user(self, username: str, password: str, firstname: str, lastname: str, role_id: int, cinema_id: int) -> User:
+
+        if self.get_by_username(username):
+            raise ValueError("Username already exists.")
+
         if not self.validate_password_requirements(password):
             raise ValueError("Password does not meet requirements.")
 
@@ -133,6 +137,9 @@ class UserService:
         user = self.get_by_user_id(user_id)
         if user:
             if username:
+                existing_user = self.get_by_username(username)
+                if existing_user and existing_user.user_id != user_id:
+                    raise ValueError("Username already exists.")
                 user.username = username
             if firstname:
                 user.firstname = firstname

@@ -59,6 +59,7 @@ class BookingService:
             for seat_id in seat_ids:
                 seat_availability = self.session.query(SeatAvailability).filter_by(seat_id=seat_id,screening_id=screening_id).first()
                 seat_availability.seat_availability = 0
+                seat_availability.booking_id = booking_id
 
             self.session.commit()  # Commit after updating availability.
 
@@ -140,7 +141,7 @@ class BookingService:
     def cancel_booking(self, booking_id: str) -> bool:
         """Cancels a booking by its ID."""
         bookings = self.session.query(Booking).filter_by(booking_id=booking_id).all()
-        if not booking:
+        if not bookings:
             raise BookingNotFoundError(f"Booking with ID {booking_id} not found.")
         try:
             # Get seat_id from the first booking
@@ -169,14 +170,23 @@ class BookingService:
                     # Update payment status of tickets to refunded
                     self.ticket_service.update_payment_status(ticket_ids, PaymentStatus.REFUNDED)
                     for booking in bookings:
-                        # Delete booking
-                        self.session.delete(booking)
+                        booking_to_delete = self.session.query(Booking).filter_by(
+                        booking_id=booking.booking_id, seat_id=booking.seat_id).first()
+                        if booking_to_delete:
+                            self.session.delete(booking_to_delete)
+                    #Update SeatAvailability
+                    self.session.query(SeatAvailability).filter_by(booking_id=booking_id).update({SeatAvailability.seat_availability: 1})
                     self.session.commit()
                     logging.info(f"Booking {booking_id} cancelled successfully.")
                     return True
                 else:
-                    logging.warning(f"Booking {booking_id} cannot be cancelled as the screening has already started.")
-                    return False
+                    raise ValueError("Booking cannot be cancelled as the screening has already started.")
+            else:
+                logging.error(f"Screening not found for booking {booking_id}.")
+                return False
+        except ValueError as e: #Catch Value errors, and re raise them.
+            self.session.rollback()
+            raise e
         except Exception as e:
             self.session.rollback()
             logging.error(f"Failed to cancel booking {booking_id}: {e}")

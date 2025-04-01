@@ -1,0 +1,32 @@
+[
+    {
+        "booking_id": "1170f7b2-abfe-4d0d-90a5-423a3ed9df71",
+        "user_id": 1,
+        "event_type": "cancellation",
+        "event_data": {
+            "cancellation_reason": "User Initiated Cancellation"
+        },
+        "timestamp": "2025-04-01T19:49:18.998035"
+    },
+    {
+        "booking_id": [
+            "9b178ae5-561c-434b-8e39-58857ee955f0",
+            "9b178ae5-561c-434b-8e39-58857ee955f0",
+            "9b178ae5-561c-434b-8e39-58857ee955f0"
+        ],
+        "user_id": 1,
+        "event_type": "booking",
+        "event_data": {
+            "seat_ids": [
+                "S4_C1_9",
+                "S4_C1_10",
+                "S4_C1_11"
+            ],
+            "customer_name": "nnnm",
+            "customer_email": "s@gmail.com",
+            "customer_phone": "1234567890",
+            "screening_id": 4
+        },
+        "timestamp": "2025-04-01T19:50:09.184488"
+    }
+]

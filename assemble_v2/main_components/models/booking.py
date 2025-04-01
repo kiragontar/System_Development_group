@@ -9,7 +9,7 @@ class Booking(Base):
     __tablename__ = 'bookings'
 
     booking_id = Column(String(225), nullable=False)
-    seat_id = Column(String(255), ForeignKey('seats.seat_id'), nullable=False)
+    seat_id = Column(String(255), ForeignKey('seats.seat_id', ondelete='CASCADE'), nullable=False)
     customer_name = Column(String(255), nullable=False)
     customer_email = Column(String(255), nullable=True)
     customer_phone = Column(String(255), nullable=True)
@@ -17,7 +17,7 @@ class Booking(Base):
     # Relationship to Screening
     seat = relationship('Seat', back_populates='bookings')
     seat_availability = relationship('SeatAvailability', back_populates='booking')
-    tickets = relationship('Ticket', back_populates='booking')
+    tickets = relationship('Ticket', back_populates='booking', cascade="all, delete-orphan")
 
     __table_args__ = (
         PrimaryKeyConstraint('booking_id', 'seat_id'), #Composite primary key.

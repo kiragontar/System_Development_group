@@ -82,3 +82,15 @@ class TicketService:
             self.session.rollback()
             logging.error(f"Failed to update ticket {ticket_id}: {e}")
         return ticket
+    
+    def update_payment_status(self, ticket_ids: list[int], payment_status: PaymentStatus) -> bool:
+        """Updates the payment status of multiple tickets."""
+        try:
+            self.session.query(Ticket).filter(Ticket.ticket_id.in_(ticket_ids)).update({Ticket.payment_status: payment_status}, synchronize_session='fetch')
+            self.session.commit()
+            logging.info(f"Payment status updated for tickets {ticket_ids}.")
+            return True
+        except Exception as e:
+            self.session.rollback()
+            logging.error(f"Failed to update payment status for tickets {ticket_ids}: {e}")
+            return False

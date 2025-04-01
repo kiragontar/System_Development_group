@@ -9,7 +9,7 @@ class Seat(Base):
     __tablename__ = 'seats'
 
     seat_id = Column(String(255), primary_key=True, unique=True)
-    screen_id = Column(String(255), ForeignKey('screens.screen_id'), nullable=False)
+    screen_id = Column(String(255), ForeignKey('screens.screen_id', ondelete='CASCADE'), nullable=False)
     cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'), nullable=False)
     seat_type = Column(String(255), nullable=False)
 

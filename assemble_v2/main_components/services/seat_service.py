@@ -4,6 +4,7 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from sqlalchemy.orm import Session
 from main_components.models import Seat, SeatAvailability
+from typing import List
 
 
 class SeatService:
@@ -30,11 +31,17 @@ class SeatService:
         """Retrieves a seat by its ID."""
         seat = self.session.query(Seat).filter_by(seat_id=seat_id).first()
         return seat
+    
+    def get_all_seats(self) -> List[Seat]:
+        return self.session.query(Seat).all()
 
     def get_all_seats_by_screen(self, screen_id: str, cinema_id : int) -> list[Seat]:
         """Retrieves all seats for a specific screen."""
         seats = self.session.query(Seat).filter_by(screen_id=screen_id, cinema_id=cinema_id).all()
         return seats
+    
+    def get_seats_by_cinema(self, cinema_id : int) -> List[Seat]:
+        return self.session.query(Seat).filter_by(cinema_id=cinema_id).all()
     
     def update_seat(self, seat_id: str, screen_id: str = None, cinema_id: int = None, seat_type: str = None) -> Seat:
         """Updates a seat by its ID."""

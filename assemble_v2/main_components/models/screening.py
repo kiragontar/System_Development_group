@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Date
+from sqlalchemy import Column, Integer, ForeignKey, String,Time, Date
 from sqlalchemy.orm import relationship
 from . import Base
 from .screen import Screen
@@ -17,14 +17,14 @@ class Screening(Base):
     screen_id = Column(String(255), ForeignKey('screens.screen_id'))
     cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'))
     date = Column(Date)
-    start_time = Column(DateTime)
+    start_time = Column(Time)
     screening_availability = Column(Integer, nullable=False)
 
     # Relationships
     cinema = relationship('Cinema', back_populates='screenings')
-    screen = relationship('Screen', back_populates='screenings')
+    screen = relationship('Screen', back_populates='screenings', uselist=True)
     film = relationship('Film', back_populates='screenings')
-    seat_availability = relationship('SeatAvailability', back_populates='screening')
+    seat_availability = relationship('SeatAvailability', back_populates='screening', cascade="all, delete-orphan")
 
     def __init__(self, film_id: str, screen_id: str, cinema_id: int, date: datetime, start_time: datetime, screening_availability: int = 1):
         """
@@ -120,23 +120,23 @@ class Screening(Base):
         """
         return self.screening_availability
     
-    def set_film_id(self, film_id: 'Film') -> None:
+    def set_film_id(self, film_id: int) -> None:
         """
         Sets the film ID for the screening.
 
         Parameters:
         - film_id (Film): The associated film.
         """
-        self.film_id = film_id.film_id
+        self.film_id = film_id
 
-    def set_screen_id(self, screen_id: 'Screen') -> None:
+    def set_screen_id(self, screen_id: str) -> None:
         """
         Sets the screen ID for the screening.
 
         Parameters:
         - screen_id (Screen): The associated screen.
         """
-        self.screen_id = screen_id.screen_id
+        self.screen_id = screen_id
     
     def set_date(self, date: datetime) -> None:
         """

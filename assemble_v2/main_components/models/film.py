@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, Integer, String, Float, Date
 from sqlalchemy.orm import relationship
 from . import Base
 from typing import List
@@ -19,7 +19,7 @@ class Film(Base):
     age_rating = Column(String(255), nullable=False)  # Age restriction (e.g., PG-13, R)
     critic_rating = Column(Float, nullable=False)  # Critic rating (e.g., IMDb or Rotten Tomatoes score)
     runtime = Column(Integer, nullable=False)  # Runtime in minutes
-    release_date = Column(DateTime, nullable=False)  # Date when the film was released
+    release_date = Column(Date, nullable=False)  # Date when the film was released
     movie_poster = Column(String(255), nullable=True)  # file path for the movie poster
 
     # Relationship with screenings (one film can have multiple screenings)

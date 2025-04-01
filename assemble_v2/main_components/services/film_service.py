@@ -92,7 +92,7 @@ class FilmService:
                     description: str = None, age_rating: str = None, critic_rating: float = None,
                     runtime: int = None, release_date: datetime = None, movie_poster: str = None) -> Optional[Film]:
         """Updates a film's details."""
-        film = self.get_all_films_by_id(film_id)
+        film = self.get_film_by_id(film_id)
         if film:
             if name:
                 film.name = name

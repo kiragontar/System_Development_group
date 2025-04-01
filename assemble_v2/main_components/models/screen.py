@@ -17,12 +17,9 @@ class Screen(Base):
     cinema_id = Column(Integer, ForeignKey('cinemas.cinema_id'), primary_key=True)  # Foreign key to the cinema
     total_capacity = Column(Integer, nullable=False)  # Total seating capacity (calculated)
     row_number = Column(Integer, nullable=False)  # Number of rows in the screen
-
-
     # Relationship to Cinema (one screen belongs to one cinema)
-    
     cinema = relationship('Cinema', back_populates='screens')
-    screenings = relationship('Screening', back_populates='screen')  # Screenings on this screen
+    screenings = relationship('Screening', back_populates='screen', cascade="all, delete-orphan")  # Screenings on this screen
 
     def __init__(self, screen_id: str, cinema_id: int, total_capacity: int, row_number: int):
         """

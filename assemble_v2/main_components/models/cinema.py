@@ -12,14 +12,14 @@ class Cinema(Base):
 
     city_id = Column(Integer, ForeignKey('cities.city_id'), nullable = False) # City ID references the City table.
     cinema_id = Column(Integer, primary_key = True, autoincrement=True) # Makes a column of id, making it a primary key and type integer.
-    name = Column(String(255), nullable = False, unique=True) # name shouldnt be nullable, so its mandatory.
+    name = Column(String(255), nullable = False) # name shouldnt be nullable, so its mandatory.
     address = Column(String(255), nullable = False)
 
     city = relationship('City', back_populates='cinemas')  # One cinema belongs to one city
-    screens = relationship('Screen', back_populates='cinema')  # Screens in this cinema
-    seats = relationship('Seat', back_populates='cinema')
+    screens = relationship('Screen', back_populates='cinema', cascade="all, delete-orphan")  # Screens in this cinema
+    seats = relationship('Seat', back_populates='cinema', cascade="all, delete-orphan")
     users = relationship('User', back_populates='cinema')
-    screenings = relationship('Screening', back_populates='cinema')
+    screenings = relationship('Screening', back_populates='cinema', cascade="all, delete-orphan")
 
     def __init__(self, city_id: int, name: str, address: str):
         """

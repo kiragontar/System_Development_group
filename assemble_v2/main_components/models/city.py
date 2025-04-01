@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.orm import relationship
 from . import Base
 
@@ -11,11 +11,11 @@ class City(Base):
     __tablename__ = 'cities'
 
     city_id = Column(Integer, primary_key=True, autoincrement=True)  # Unique identifier for the city.
-    name = Column(String(255), nullable=False, unique=True)  # The name of the city.
+    name = Column(String(255), nullable=False)  # The name of the city.
     country = Column(String(255), nullable=False)  # The country where the city is located.
-    price_morning = Column(Integer, nullable=False)  
-    price_afternoon = Column(Integer, nullable=False) 
-    price_evening = Column(Integer, nullable=False)  
+    price_morning = Column(Float, nullable=False)  
+    price_afternoon = Column(Float, nullable=False) 
+    price_evening = Column(Float, nullable=False)  
 
     # Relationship to cinemas in the city
     cinemas = relationship('Cinema', back_populates='city')  # List of cinemas in the city.

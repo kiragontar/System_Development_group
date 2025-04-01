@@ -9,7 +9,7 @@ class Ticket(Base):
     __tablename__ = 'tickets'
 
     ticket_id = Column(Integer, primary_key=True, autoincrement=True)
-    booking_id = Column(String(255), ForeignKey('bookings.booking_id'), nullable=False)
+    booking_id = Column(String(255), ForeignKey('bookings.booking_id', ondelete='CASCADE'), nullable=False)
     seat_id = Column(String(255), ForeignKey('seats.seat_id'), nullable=False)
     ticket_price = Column(Float, nullable=False)
     qr_code = Column(String(255), nullable=True)
@@ -17,7 +17,7 @@ class Ticket(Base):
     payment_status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     
 
-    booking = relationship('Booking', back_populates='tickets')
+    booking = relationship('Booking', back_populates='tickets', lazy='select')
     seat = relationship('Seat', back_populates='tickets')
 
 

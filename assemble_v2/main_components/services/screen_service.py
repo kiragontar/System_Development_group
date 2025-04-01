@@ -19,14 +19,24 @@ class ScreenService:
 
     def create_screen(self, screen_id: str, cinema_id: int, total_capacity : int, row_number : int) -> Screen:
         """Creates a new screen."""
+        existing_screen = self.session.query(Screen).filter(
+            Screen.screen_id == screen_id,
+            Screen.cinema_id == cinema_id
+        ).first()
+        if existing_screen:
+            raise ValueError(f"Screen with ID '{screen_id}' in Cinema '{cinema_id}' already exists.")
+        
         screen = Screen.create_screen(screen_id, cinema_id, total_capacity, row_number)
         self.session.add(screen)
         self.session.commit()
         return screen
 
-    def get_screen_by_id(self, screen_id: str, cinema_id: int) -> Optional[Screen]:
+    def get_screen_by_id(self, screen_id: str, cinema_id: int = None) -> Optional[Screen]:
         """Retrieves a screen by ID."""
-        return self.session.query(Screen).filter_by(screen_id=screen_id, cinema_id=cinema_id).first()
+        if cinema_id is not None:
+            return self.session.query(Screen).filter_by(screen_id=screen_id, cinema_id=cinema_id).first()
+        else:
+            return self.session.query(Screen).filter_by(screen_id=screen_id).first()
 
     def get_all_screens(self) -> List[Screen]:
         """Retrieves all screens."""
@@ -43,7 +53,9 @@ class ScreenService:
             return self.session.query(Screen).filter_by(screen_id=screening.screen_id).first()
         return None
     
-
+    def get_screens_for_cinema(self, cinema_id : int) -> List[Screen]:
+        return self.session.query(Screen).filter_by(cinema_id=cinema_id).all()
+    
     def update_screen_capacities(self, screen_id: str, cinema_id : int, total_capacity : int = None, row_number : int = None) -> Optional[Screen]:
         """Updates the seating capacities of a screen."""
         screen = self.session.query(Screen).filter_by(screen_id=screen_id, cinema_id=cinema_id).first()
