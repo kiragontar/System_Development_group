@@ -1,0 +1,21 @@
+[
+    {
+        "booking_id": [
+            "1a1bc179-15dc-40ad-9013-0d9050cafdd1",
+            "1a1bc179-15dc-40ad-9013-0d9050cafdd1"
+        ],
+        "user_id": 5,
+        "event_type": "booking",
+        "event_data": {
+            "seat_ids": [
+                "S4_C1_13",
+                "S4_C1_14"
+            ],
+            "customer_name": "Tester",
+            "customer_email": "Tester@gmail.com",
+            "customer_phone": "2243612994",
+            "screening_id": 4
+        },
+        "timestamp": "2025-04-02T09:18:40.770811"
+    }
+]
